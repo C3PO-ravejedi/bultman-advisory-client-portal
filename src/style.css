@@ -672,3 +672,51 @@
     padding-top:4rem!important;
   }
 }
+
+/* Mobile final polish: brand presence + supporting visual, still no clutter */
+@media(max-width:1050px){
+  .site-nav{
+    padding:1.25rem 1rem 1rem!important;
+  }
+  .wordmark span{
+    flex:0 0 54px!important;
+    width:54px!important;
+    height:54px!important;
+    font-size:1.38rem!important;
+    border-width:2px!important;
+  }
+  .wordmark strong{
+    font-size:1.72rem!important;
+    letter-spacing:-.02em!important;
+  }
+  .hero-editorial{
+    min-height:calc(100svh - 84px)!important;
+    padding:1.85rem 1.25rem 2.4rem!important;
+  }
+  .controlled-headline{
+    font-size:2.58rem!important;
+    line-height:1.07!important;
+  }
+  .hero-copy-block .hero-lede{
+    font-size:1.05rem!important;
+    line-height:1.58!important;
+  }
+  .hero-copy-block .hero-actions{margin-top:1.25rem!important}
+  .hero-actions button{min-height:52px!important}
+  .art-dossier{
+    display:block!important;
+    width:100%!important;
+    margin:1.35rem 0 0!important;
+    border:1px solid rgba(16,31,45,.14)!important;
+    background:#101f2d!important;
+    box-shadow:none!important;
+    overflow:hidden!important;
+  }
+  .art-dossier-image{
+    display:block!important;
+    min-height:170px!important;
+    height:170px!important;
+  }
+  .art-dossier-copy{display:none!important}
+  .intro-section{padding-top:4rem!important}
+}
