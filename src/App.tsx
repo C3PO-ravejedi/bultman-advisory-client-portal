@@ -129,21 +129,23 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
       <section id="top" className="hero-site hero-editorial">
         <div className="hero-editorial-grid">
           <div className="hero-copy-block">
-            <p className="eyebrow">Bultman Advisory</p>
-            <h1 className="controlled-headline"><span>Art</span><span>Legacy</span><span>Stewardship</span></h1>
+            <p className="eyebrow">Private art advisory</p>
+            <h1 className="controlled-headline"><span>Stewardship for</span><span>important collections</span></h1>
             <p className="hero-lede">
-              Private advisory for significant collections, artist legacies, estates, family offices, and cultural institutions — grounded in five generations of stewardship.
+              Strategic counsel for collectors, families, estates, artists, and institutions where provenance, discretion, market discipline, and legacy matter.
             </p>
             <div className="hero-actions">
-              <a href="#about" className="text-link">About the firm</a>
+              <a href="#services" className="text-link">View advisory services</a>
               <button onClick={onEnter}>Private client portal <ArrowRight size={17}/></button>
             </div>
           </div>
-          <aside className="advisory-ledger" aria-label="Advisory credentials">
-            <div><span>1883</span><p>House of Bultman established in New Orleans; family stewardship begins.</p></div>
-            <div><span>Five generations</span><p>Artists, collectors, patrons, advisors, and cultural stewards across more than 140 years.</p></div>
-            <div><span>2016</span><p>Advisory practice founded to bring institutional discipline to private collections and estates.</p></div>
-            <div><span>Advisory index</span><p>Acquisition diligence · provenance · valuation · insurance · lending · deaccession · charitable placement · artist estates</p></div>
+          <aside className="art-dossier" aria-label="Private advisory dossier">
+            <div className="art-dossier-image"></div>
+            <div className="art-dossier-copy">
+              <span>Advisory dossier</span>
+              <h2>Collection strategy, provenance review, estate transition, and market execution.</h2>
+              <p>Built for collections that require museum-level discipline and private-office discretion.</p>
+            </div>
           </aside>
         </div>
       </section>
@@ -153,10 +155,10 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
         <div className="editorial-copy">
           <h2>A Different Kind<br/>of Advisory</h2>
           <p>
-            Bultman Advisory was founded on the belief that collectors, artists, families, and institutions deserve more than transactional service — they deserve a partner with the depth to understand what they own, the discipline to protect it, and the vision to ensure it endures.
+Bultman Advisory works where art, capital, family, and legacy intersect. The mandate is not to decorate a collection with advice — it is to protect meaning, value, provenance, and optionality over decades.
           </p>
           <p>
-            We bring the rigor of institutional practice to every engagement: thorough diligence, disciplined strategy, and a commitment to alignment that puts the client’s long-term interest first.
+The firm brings institutional diligence to private collections: acquisition strategy, market intelligence, documentation, conservation coordination, insurance review, lending support, estate planning, and discreet sales execution.
           </p>
         </div>
       </section>
@@ -169,14 +171,14 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
       </section>
 
       <section className="quote-band">
-        <blockquote>“We treat every collection as if it were our own — because in many ways, the principles that guide us are the same ones our family has lived by for over a century.”</blockquote>
+        <blockquote>“The work comes first. The market is only one part of stewardship.”</blockquote>
         <span>Tristan Bultman, Founder</span>
       </section>
 
       <section className="authority-band">
-        <article><span>Private collectors</span><p>Collection strategy, acquisition diligence, valuation review, conservation coordination, storage, insurance, and long-term governance.</p></article>
-        <article><span>Families & estates</span><p>Succession planning, equitable distribution, charitable placement, deaccession strategy, and multigenerational alignment.</p></article>
-        <article><span>Artists & institutions</span><p>Archive discipline, catalogue raisonné support, museum placement strategy, artist estate planning, and institutional stewardship.</p></article>
+        <article><span>Private collectors</span><p>Acquisition theses, artist evaluation, valuation review, provenance files, conservation priorities, storage, insurance, and governance.</p></article>
+        <article><span>Families & estates</span><p>Succession planning, equitable distribution, charitable placement, tax-aware disposition strategy, and family alignment.</p></article>
+        <article><span>Artists & institutions</span><p>Archive structure, catalogue raisonné support, museum placement strategy, estate planning, and long-term reputation stewardship.</p></article>
       </section>
 
       <section id="legacy" className="editorial-section legacy-section">
