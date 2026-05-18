@@ -122,7 +122,6 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
           <a href="#services">Services</a>
           <a href="#team">Team</a>
           <a href="#platform">Portal</a>
-          <span className="mobile-menu-label">Menu</span>
           <button onClick={onEnter}>Client Portal</button>
         </div>
       </nav>
