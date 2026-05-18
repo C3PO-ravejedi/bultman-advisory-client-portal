@@ -38,13 +38,19 @@ jobs:
           npm install --prefix "$PW_TMP" playwright@latest
           PLAYWRIGHT_REQUIRE_PATH="$PW_TMP/node_modules/playwright"
           "$PW_TMP/node_modules/.bin/playwright" install --with-deps chromium
-          npx vite preview --host 127.0.0.1 --port 4173 > /tmp/bultman-preview.log 2>&1 &
+          pnpm exec vite preview --host 127.0.0.1 --port 4173 > /tmp/bultman-preview.log 2>&1 &
+          READY=0
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:4173/bultman-advisory-client-portal/ >/dev/null; then
+              READY=1
               break
             fi
             sleep 1
           done
+          if [ "$READY" != "1" ]; then
+            cat /tmp/bultman-preview.log
+            exit 1
+          fi
           PLAYWRIGHT_REQUIRE_PATH="$PLAYWRIGHT_REQUIRE_PATH" node qa/functional-qa.mjs http://127.0.0.1:4173/bultman-advisory-client-portal/ qa/screenshots/functional-qa.json
       - run: npx --yes playwright@latest install --with-deps chromium
       - name: Capture live screenshots

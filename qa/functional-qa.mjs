@@ -27,7 +27,7 @@ const assertText = async (label, text) => {
   const bodyText = normalize(await page.locator('body').innerText().catch(() => ''));
   const found = visible || bodyText.includes(text);
   checks.push({ label, pass: found, expectedText: text, visible });
-  if (!found) throw new Error(`${label} failed: missing ${text}`);
+  if (!found) throw new Error(`${label} failed: missing ${text}. url=${page.url()} body=${bodyText.slice(0, 400)} events=${events.join(' | ')}`);
 };
 
 await page.goto(url, { waitUntil: 'networkidle' });
