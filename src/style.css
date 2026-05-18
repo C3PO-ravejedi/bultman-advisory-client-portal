@@ -485,3 +485,38 @@
     line-height:1.6!important;
   }
 }
+
+/* Mobile acceptance fix: remove crowded header and awkward first-fold crop */
+@media(max-width:1050px){
+  .site-nav{
+    display:flex!important;
+    justify-content:space-between!important;
+    align-items:center!important;
+    padding:.92rem 1rem!important;
+  }
+  .wordmark span{flex:0 0 46px!important;width:46px!important;height:46px!important}
+  .wordmark strong{font-size:1.36rem!important;letter-spacing:-.01em!important}
+  .site-nav div a.mobile-menu-link{display:none!important}
+  .site-nav button{
+    min-height:42px!important;
+    padding:.62rem .82rem!important;
+    border:1px solid rgba(148,120,66,.52)!important;
+    background:transparent!important;
+    font-size:.72rem!important;
+    font-weight:800!important;
+  }
+  .hero-editorial{
+    padding:2.6rem 1.15rem 2.2rem!important;
+  }
+  .controlled-headline{font-size:2.48rem!important;line-height:1.1!important}
+  .hero-copy-block .hero-lede{font-size:1rem!important;line-height:1.62!important}
+  .hero-copy-block .hero-actions{margin-top:1.2rem!important;gap:.7rem!important}
+  .hero-actions .text-link,
+  .hero-actions button{min-height:46px!important;padding:.8rem .9rem!important}
+  .art-dossier{margin-top:1.25rem!important;grid-template-rows:138px auto!important}
+  .art-dossier-image{min-height:138px!important}
+  .art-dossier-copy{padding:.85rem .95rem!important}
+  .art-dossier-copy span{font-size:.68rem!important}
+  .art-dossier-copy h2{font-size:1.05rem!important;line-height:1.16!important;margin:.35rem 0 0!important}
+  .art-dossier-copy p{font-size:.88rem!important;line-height:1.45!important;margin:.42rem 0 0!important}
+}
