@@ -35,7 +35,20 @@ jobs:
       - name: Capture live screenshots
         env:
           QA_URL: ${{ github.event.inputs.url || 'https://c3po-ravejedi.github.io/bultman-advisory-client-portal/' }}
-        run: node qa/capture-live-screenshots.mjs "$QA_URL" qa/screenshots
+        run: |
+          mkdir -p qa/screenshots
+          npx --yes playwright screenshot --browser=chromium --wait-for-timeout=5000 --viewport-size=1440,1800 "$QA_URL?visualQa=${GITHUB_RUN_ID}-desktop" qa/screenshots/desktop-1440.png
+          npx --yes playwright screenshot --browser=chromium --wait-for-timeout=5000 --viewport-size=390,844 "$QA_URL?visualQa=${GITHUB_RUN_ID}-mobile" qa/screenshots/mobile-390.png
+          cat > qa/screenshots/README.md <<EOF2
+          # Live Visual QA Screenshots
+
+          URL: $QA_URL
+          Captured: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+          Files:
+          - desktop-1440.png
+          - mobile-390.png
+          EOF2
       - name: LLM visual evaluation of screenshot artifacts
         if: ${{ env.OPENAI_API_KEY != '' }}
         env:
