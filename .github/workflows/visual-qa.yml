@@ -38,7 +38,7 @@ jobs:
           npm install --prefix "$PW_TMP" playwright@latest
           PLAYWRIGHT_REQUIRE_PATH="$PW_TMP/node_modules/playwright"
           "$PW_TMP/node_modules/.bin/playwright" install --with-deps chromium
-          pnpm exec vite preview --host 127.0.0.1 --port 4173 > /tmp/bultman-preview.log 2>&1 &
+          GITHUB_PAGES=true pnpm exec vite preview --host 127.0.0.1 --port 4173 > /tmp/bultman-preview.log 2>&1 &
           READY=0
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:4173/bultman-advisory-client-portal/ >/dev/null; then
