@@ -88,71 +88,95 @@ function timestamp() {
 
 function PublicSite({ onEnter }: { onEnter: () => void }) {
   const services = [
-    ['Collection Advisory', 'Acquisition strategy, artist evaluation, pricing intelligence, diligence, and negotiation support.'],
-    ['Collection Management', 'Cataloguing, condition tracking, insurance review, storage coordination, and installation oversight.'],
-    ['Estate & Transitions', 'Succession planning, collection governance, family education, and charitable placement strategy.'],
-    ['Art Investment Strategy', 'Portfolio-level market analysis, liquidity planning, risk review, and long-term positioning.'],
-    ['Sales & Deaccession', 'Private treaty, auction, and dealer-channel execution with discretion and relationship control.'],
-    ['Artist Estate Advisory', 'Legacy planning, archive management, catalogue raisonné support, and market stewardship.'],
+    ['Collection Advisory', 'Strategic guidance on building and refining collections — market analysis, artist evaluation, provenance research, pricing intelligence, and negotiation.'],
+    ['Collection Management', 'Institutional-grade oversight: cataloguing, condition reporting, insurance review, storage coordination, loan facilitation, and installation planning.'],
+    ['Estate & Collection Transitions', 'Sensitive planning for succession, charitable placement, multigenerational governance, equitable distribution, and deaccession strategy.'],
+    ['Art Investment Strategy', 'Disciplined analysis of art as an asset class, portfolio positioning, market trend review, and liquidity planning.'],
+    ['Sales & Deaccession', 'Private treaty, auction, and dealer-channel execution designed to maximize value while preserving relationships and reputation.'],
+    ['Art-Secured Lending', 'Appraisal coordination, loan structuring, and relationship management with specialty lenders and private banks.'],
+    ['Artist & Estate Advisory', 'Legacy planning, archive management, catalogue raisonné support, market stewardship, and reputation strategy for artists and estates.'],
+  ];
+  const timeline = [
+    ['1883', 'The House of Bultman', 'A. Frederick Bultman Sr. establishes the House of Bultman in New Orleans, beginning a family legacy of service, culture, and civic stewardship.'],
+    ['1940s–50s', 'Artists, writers, patrons', 'The Bultman home becomes a gathering place for artists and cultural figures, shaping a family tradition of direct engagement with creative lives.'],
+    ['1919–1985', 'Fritz Bultman', 'Fritz Bultman emerges as a significant Abstract Expressionist and art advisor, placing the family at the center of American modernism.'],
+    ['2016', 'Bultman Advisory Founded', 'Tristan Bultman formalizes the advisory practice, uniting art-world relationships with institutional-grade strategic counsel.'],
+  ];
+  const team = [
+    ['Tristan Bultman', 'Founder & Managing Partner', 'Fifth generation in the arts, with more than 15 years of art-world experience and a prior career in institutional finance.'],
+    ['Leigh Mozes', 'Director of Collections', 'Sixteen years across galleries, auction houses, artist studios, installations, and private collection management.'],
   ];
   const insights = [
-    ['Market discipline over market noise', 'How institutional collectors separate signal from auction-cycle volatility.'],
-    ['Documentation is stewardship', 'Why condition, provenance, insurance, and ownership records are the real collection infrastructure.'],
-    ['Estate planning before urgency', 'The governance decisions that preserve family alignment before transition pressure arrives.'],
+    ['The collection is the institution', 'Why serious private collections need the same operating discipline as museums, foundations, and family offices.'],
+    ['Stewardship before transaction', 'The difference between advisory that chases volume and advisory that protects the work, the client, and the legacy.'],
+    ['Documentation is risk management', 'How provenance, condition, insurance, ownership, and audit trails become the infrastructure of long-term value.'],
   ];
 
   return (
     <main className="site-shell">
       <nav className="site-nav">
-        <a className="wordmark" href="#top"><span>BA</span>Bultman Advisory</a>
+        <a className="wordmark" href="#top"><span>BA</span><strong>Bultman Advisory</strong><em>Art · Legacy · Stewardship</em></a>
         <div>
-          <a href="#services">Services</a>
-          <a href="#platform">Portal</a>
+          <a href="#about">About</a>
           <a href="#legacy">Legacy</a>
-          <a href="#insights">Insights</a>
-          <button onClick={onEnter}>Client Login</button>
+          <a href="#services">Services</a>
+          <a href="#team">Team</a>
+          <a href="#platform">Portal</a>
+          <button onClick={onEnter}>Client Portal</button>
         </div>
       </nav>
 
       <section id="top" className="hero-site">
-        <div className="hero-copy">
-          <p className="eyebrow">Art · Legacy · Stewardship</p>
-          <h1>Institutional-caliber advisory for collections that must endure.</h1>
-          <p>
-            Bultman Advisory brings rigorous collection management, estate transition planning,
-            market intelligence, and secure client collaboration into one discreet digital portal.
+        <div className="hero-frame">
+          <p className="eyebrow">Bultman Advisory</p>
+          <h1>Art · Legacy · Stewardship</h1>
+          <p className="hero-lede">
+            Institutional-caliber advisory for collectors, artists, families, and institutions — grounded in five generations of stewardship.
           </p>
           <div className="hero-actions">
-            <button onClick={onEnter}>Enter client portal <ArrowRight size={18}/></button>
-            <a href="#platform">View platform</a>
-          </div>
-        </div>
-        <div className="hero-panel">
-          <span>Private collection dashboard</span>
-          <strong>Portfolio view</strong>
-          <small>Inventory · documents · messages · stewardship actions</small>
-          <div className="mini-stack">
-            <b>Insurance schedule review</b>
-            <b>Loan inspection workflow</b>
-            <b>Advisor market memo</b>
+            <a href="#about" className="text-link">Learn more</a>
+            <button onClick={onEnter}>Enter client portal <ArrowRight size={17}/></button>
           </div>
         </div>
       </section>
 
-      <section className="cred-strip">
-        <article><strong>1883</strong><span>House of Bultman established</span></article>
-        <article><strong>5</strong><span>Generations in the arts</span></article>
-        <article><strong>2016</strong><span>Advisory founded</span></article>
-        <article><strong>15+</strong><span>Years of art-world experience</span></article>
+      <section id="about" className="editorial-section intro-section">
+        <div className="section-kicker">About</div>
+        <div className="editorial-copy">
+          <h2>A Different Kind<br/>of Advisory</h2>
+          <p>
+            Bultman Advisory was founded on the belief that collectors, artists, families, and institutions deserve more than transactional service — they deserve a partner with the depth to understand what they own, the discipline to protect it, and the vision to ensure it endures.
+          </p>
+          <p>
+            We bring the rigor of institutional practice to every engagement: thorough diligence, disciplined strategy, and a commitment to alignment that puts the client’s long-term interest first.
+          </p>
+        </div>
       </section>
 
-      <section id="services" className="site-section">
-        <p className="eyebrow">Services</p>
-        <h2>A private office for the life of a collection.</h2>
-        <div className="service-grid">
-          {services.map(([title, copy], index) => (
+      <section className="metrics-band">
+        <article><strong>1883</strong><span>House of Bultman Est.</span></article>
+        <article><strong>5</strong><span>Generations in the Arts</span></article>
+        <article><strong>2016</strong><span>Advisory Founded</span></article>
+        <article><strong>15+</strong><span>Years in the Art World</span></article>
+      </section>
+
+      <section className="quote-band">
+        <blockquote>“We treat every collection as if it were our own — because in many ways, the principles that guide us are the same ones our family has lived by for over a century.”</blockquote>
+        <span>Tristan Bultman, Founder</span>
+      </section>
+
+      <section id="legacy" className="editorial-section legacy-section">
+        <div className="section-kicker">Legacy</div>
+        <div className="editorial-copy">
+          <h2>Five Generations of Stewardship</h2>
+          <p>
+            The Bultman family’s relationship with art spans more than 140 years — from the founding of the House of Bultman in New Orleans to the forefront of American Abstract Expressionism to the advisory practice of today.
+          </p>
+        </div>
+        <div className="timeline-list">
+          {timeline.map(([era, title, copy]) => (
             <article key={title}>
-              <span>{String(index + 1).padStart(2, '0')}</span>
+              <span>{era}</span>
               <h3>{title}</h3>
               <p>{copy}</p>
             </article>
@@ -160,54 +184,80 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
         </div>
       </section>
 
-      <section id="platform" className="site-section platform-band">
+      <section id="services" className="services-section">
+        <div className="section-kicker">Services</div>
+        <h2>Institutional counsel for every chapter of a collection.</h2>
+        <div className="service-list">
+          {services.map(([title, copy], index) => (
+            <article key={title}>
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              <div>
+                <h3>{title}</h3>
+                <p>{copy}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="team" className="team-section">
+        <div className="section-kicker">Team</div>
+        <h2>Experienced counsel. Long-term alignment.</h2>
+        <div className="team-grid">
+          {team.map(([name, title, copy]) => (
+            <article key={name}>
+              <div className="portrait-placeholder">{name.split(' ').map((part) => part[0]).join('')}</div>
+              <h3>{name}</h3>
+              <span>{title}</span>
+              <p>{copy}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="platform" className="platform-section">
         <div>
-          <p className="eyebrow">Client Portal</p>
-          <h2>Secure access to the collection, documents, messages, reports, and audit trail.</h2>
+          <div className="section-kicker">Client Platform</div>
+          <h2>Private infrastructure for collection stewardship.</h2>
           <p>
-            The prototype includes role-based views, client-scoped inventory, secure document flows,
-            advisor messaging, action tracking, market updates, and an immutable activity log.
+            The client portal prototype translates the firm’s advisory discipline into a secure operating layer: role-based access, collection inventory, documents, messaging, action items, market notes, and audit history.
           </p>
-          <button onClick={onEnter}>Open working prototype</button>
+          <button onClick={onEnter}>Open the working portal</button>
         </div>
-        <div className="screen-card">
-          <div className="screen-top"><span></span><span></span><span></span></div>
-          <h3>Stewardship Queue</h3>
-          <p>Approve condition photography request</p>
-          <p>Prepare loan return inspection packet</p>
-          <p>Update insurance schedule before renewal</p>
+        <div className="portal-preview">
+          <div className="preview-bar"><span></span><span></span><span></span></div>
+          <p className="eyebrow">Stewardship Queue</p>
+          <h3>Whitfield Family Collection</h3>
+          <ul>
+            <li><CheckCircle2 size={17}/> Insurance schedule review</li>
+            <li><FileText size={17}/> Provenance packet pending</li>
+            <li><MessageSquare size={17}/> Advisor market memo</li>
+          </ul>
         </div>
       </section>
 
-      <section id="legacy" className="site-section legacy-grid">
-        <div>
-          <p className="eyebrow">Legacy</p>
-          <h2>Five generations of stewardship, translated for modern collectors.</h2>
-        </div>
-        <blockquote>
-          “Art is not a decoration. It is a heritage, a responsibility, and — when properly cared for — a legacy that outlasts us all.”
-        </blockquote>
-      </section>
-
-      <section id="insights" className="site-section insights">
-        <p className="eyebrow">Insights</p>
-        <h2>Strategic notes for collectors, families, and institutions.</h2>
+      <section id="insights" className="insights-section">
+        <div className="section-kicker">Insights</div>
+        <h2>Notes on art, markets, and stewardship.</h2>
         <div className="insight-grid">
           {insights.map(([title, copy]) => (
             <article key={title}>
               <h3>{title}</h3>
               <p>{copy}</p>
-              <a href="#top">Read brief <ArrowRight size={15}/></a>
+              <a href="#top">Read brief <ArrowRight size={14}/></a>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="site-section contact-band">
-        <p className="eyebrow">Private Access</p>
-        <h2>Designed for discreet, high-trust collection stewardship.</h2>
-        <p>Client portal access is invitation-only. The working prototype is available through the secure login flow.</p>
-        <button onClick={onEnter}>Enter portal</button>
+      <section className="careers-section">
+        <div>
+          <div className="section-kicker">Careers</div>
+          <h2>Build the Future<br/>of Art Advisory</h2>
+        </div>
+        <p>
+          Bultman Advisory is building institutional-caliber infrastructure for collectors, artists, families, and institutions. The portal is designed to support a practice defined by expertise, discretion, technology, and long-term stewardship.
+        </p>
       </section>
     </main>
   );
