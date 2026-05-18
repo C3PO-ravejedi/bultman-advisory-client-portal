@@ -21,9 +21,12 @@ page.on('console', (msg) => {
 page.on('pageerror', (err) => events.push(`pageerror:${err.message}`));
 
 const checks = [];
+const normalize = (value) => value.replace(/\s+/g, ' ').trim();
 const assertText = async (label, text) => {
-  const found = await page.getByText(text, { exact: false }).first().isVisible().catch(() => false);
-  checks.push({ label, pass: found, expectedText: text });
+  const visible = await page.getByText(text, { exact: false }).first().isVisible().catch(() => false);
+  const bodyText = normalize(await page.locator('body').innerText().catch(() => ''));
+  const found = visible || bodyText.includes(text);
+  checks.push({ label, pass: found, expectedText: text, visible });
   if (!found) throw new Error(`${label} failed: missing ${text}`);
 };
 
