@@ -167,7 +167,7 @@ export default function App() {
         <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
         <button onClick={login}>Enter secure portal</button>
         <button className="secondary" onClick={googleLogin}>Continue with Google</button>
-        <p className="fine-print">Demo password: <strong>prototype-only</strong>. Messages, uploads, completed actions, and audit events persist in this browser until reset.</p>
+        <p className="fine-print">Demo password: <strong>prototype-only</strong>. {firebaseEnabled ? 'Firebase-connected demo sessions are in-memory unless real Auth/Firestore credentials are used.' : 'Messages, uploads, completed actions, and audit events persist in this browser until reset.'}</p>
       </section>
     </main>;
   }
