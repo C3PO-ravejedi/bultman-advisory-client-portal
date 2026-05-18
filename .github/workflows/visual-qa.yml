@@ -34,7 +34,7 @@ jobs:
       - run: GITHUB_PAGES=true pnpm run build
       - name: Run Playwright functional QA
         run: |
-          PLAYWRIGHT_REQUIRE_PATH=$(pnpm dlx -p playwright@latest node -e "console.log(require.resolve('playwright'))")
+          PLAYWRIGHT_REQUIRE_PATH=$(pnpm dlx --package=playwright@latest node -e "console.log(require.resolve('playwright'))")
           pnpm dlx playwright@latest install --with-deps chromium
           npx vite preview --host 127.0.0.1 --port 4173 > /tmp/bultman-preview.log 2>&1 &
           for i in {1..30}; do
