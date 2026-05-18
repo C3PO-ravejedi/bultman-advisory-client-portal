@@ -129,12 +129,11 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
 
       <section id="top" className="hero-site hero-editorial">
         <div className="hero-editorial-grid">
-          <div className="hero-monogram" aria-hidden="true">BA</div>
           <div className="hero-copy-block">
             <p className="eyebrow">Bultman Advisory</p>
-            <h1>Art · Legacy · Stewardship</h1>
+            <h1 className="controlled-headline"><span>Art</span><span>Legacy</span><span>Stewardship</span></h1>
             <p className="hero-lede">
-              Institutional-caliber advisory for collectors, artists, families, estates, and cultural institutions — grounded in five generations of stewardship.
+              Private advisory for significant collections, artist legacies, estates, family offices, and cultural institutions — grounded in five generations of stewardship.
             </p>
             <div className="hero-actions">
               <a href="#about" className="text-link">About the firm</a>
@@ -142,10 +141,10 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
             </div>
           </div>
           <aside className="advisory-ledger" aria-label="Advisory credentials">
-            <div><span>1883</span><p>House of Bultman established in New Orleans</p></div>
-            <div><span>5</span><p>Generations at the intersection of art and stewardship</p></div>
-            <div><span>2016</span><p>Advisory practice founded for collectors, artists, families, and institutions</p></div>
-            <div><span>Scope</span><p>Collections · Estates · Provenance · Lending · Deaccession · Artist Legacies</p></div>
+            <div><span>1883</span><p>House of Bultman established in New Orleans; family stewardship begins.</p></div>
+            <div><span>Five generations</span><p>Artists, collectors, patrons, advisors, and cultural stewards across more than 140 years.</p></div>
+            <div><span>2016</span><p>Advisory practice founded to bring institutional discipline to private collections and estates.</p></div>
+            <div><span>Advisory index</span><p>Acquisition diligence · provenance · valuation · insurance · lending · deaccession · charitable placement · artist estates</p></div>
           </aside>
         </div>
       </section>
@@ -176,9 +175,9 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
       </section>
 
       <section className="authority-band">
-        <article><span>Private collectors</span><p>Collection strategy, acquisition diligence, storage, insurance, and long-term governance.</p></article>
-        <article><span>Families & estates</span><p>Succession planning, charitable placement, distribution strategy, and multigenerational alignment.</p></article>
-        <article><span>Artists & institutions</span><p>Legacy planning, archive discipline, artist estate support, and institutional stewardship.</p></article>
+        <article><span>Private collectors</span><p>Collection strategy, acquisition diligence, valuation review, conservation coordination, storage, insurance, and long-term governance.</p></article>
+        <article><span>Families & estates</span><p>Succession planning, equitable distribution, charitable placement, deaccession strategy, and multigenerational alignment.</p></article>
+        <article><span>Artists & institutions</span><p>Archive discipline, catalogue raisonné support, museum placement strategy, artist estate planning, and institutional stewardship.</p></article>
       </section>
 
       <section id="legacy" className="editorial-section legacy-section">
