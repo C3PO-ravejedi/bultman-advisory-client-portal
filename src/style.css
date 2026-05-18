@@ -568,3 +568,15 @@
     display:none!important;
   }
 }
+
+/* Mobile fold fix: first screen must end cleanly, not cut into About */
+@media(max-width:1050px){
+  .hero-editorial{
+    min-height:calc(100svh - 74px)!important;
+    padding-bottom:5.5rem!important;
+  }
+  .intro-section{
+    margin-top:0!important;
+    padding-top:4.5rem!important;
+  }
+}
