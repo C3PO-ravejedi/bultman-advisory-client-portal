@@ -4,7 +4,8 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const require = createRequire(`${process.cwd()}/`);
-const { chromium } = require('playwright');
+const playwrightPath = process.env.PLAYWRIGHT_REQUIRE_PATH || 'playwright';
+const { chromium } = require(playwrightPath);
 
 const url = process.argv[2] || 'http://127.0.0.1:4173/';
 const out = resolve(process.argv[3] || 'qa/reports/functional-qa.json');
