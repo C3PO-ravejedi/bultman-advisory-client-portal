@@ -127,36 +127,25 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
         </div>
       </nav>
 
-      <section id="top" className="hero-site">
-        <div className="hero-inner">
-          <div className="hero-frame">
-            <p className="eyebrow">Private art advisory · New York</p>
+      <section id="top" className="hero-site hero-editorial">
+        <div className="hero-editorial-grid">
+          <div className="hero-monogram" aria-hidden="true">BA</div>
+          <div className="hero-copy-block">
+            <p className="eyebrow">Bultman Advisory</p>
             <h1>Art · Legacy · Stewardship</h1>
             <p className="hero-lede">
-              Institutional-caliber counsel for serious collectors, artists, family offices, estates, and cultural institutions — grounded in five generations of art-world stewardship.
+              Institutional-caliber advisory for collectors, artists, families, estates, and cultural institutions — grounded in five generations of stewardship.
             </p>
-            <div className="hero-proof">
-              <span>Collection strategy</span>
-              <span>Estate transitions</span>
-              <span>Provenance</span>
-              <span>Institutional diligence</span>
-            </div>
             <div className="hero-actions">
-              <a href="#about" className="text-link">Learn more</a>
-              <button onClick={onEnter}>Private client access <ArrowRight size={17}/></button>
+              <a href="#about" className="text-link">About the firm</a>
+              <button onClick={onEnter}>Private client portal <ArrowRight size={17}/></button>
             </div>
           </div>
-          <aside className="hero-art-card" aria-label="Art advisory visual detail">
-            <div className="art-photo"></div>
-            <div className="art-caption">
-              <span>Private advisory dossier</span>
-              <strong>Collections · Estates · Artists · Institutions</strong>
-              <p>Acquisition diligence, provenance review, insurance schedules, secured lending, charitable placement, and multigenerational transition planning.</p>
-              <dl>
-                <div><dt>1883</dt><dd>family stewardship begins</dd></div>
-                <div><dt>2016</dt><dd>advisory practice founded</dd></div>
-              </dl>
-            </div>
+          <aside className="advisory-ledger" aria-label="Advisory credentials">
+            <div><span>1883</span><p>House of Bultman established in New Orleans</p></div>
+            <div><span>5</span><p>Generations at the intersection of art and stewardship</p></div>
+            <div><span>2016</span><p>Advisory practice founded for collectors, artists, families, and institutions</p></div>
+            <div><span>Scope</span><p>Collections · Estates · Provenance · Lending · Deaccession · Artist Legacies</p></div>
           </aside>
         </div>
       </section>
@@ -184,6 +173,12 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
       <section className="quote-band">
         <blockquote>“We treat every collection as if it were our own — because in many ways, the principles that guide us are the same ones our family has lived by for over a century.”</blockquote>
         <span>Tristan Bultman, Founder</span>
+      </section>
+
+      <section className="authority-band">
+        <article><span>Private collectors</span><p>Collection strategy, acquisition diligence, storage, insurance, and long-term governance.</p></article>
+        <article><span>Families & estates</span><p>Succession planning, charitable placement, distribution strategy, and multigenerational alignment.</p></article>
+        <article><span>Artists & institutions</span><p>Legacy planning, archive discipline, artist estate support, and institutional stewardship.</p></article>
       </section>
 
       <section id="legacy" className="editorial-section legacy-section">
