@@ -122,6 +122,7 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
           <a href="#services">Services</a>
           <a href="#team">Team</a>
           <a href="#platform">Portal</a>
+          <span className="mobile-menu-label">Menu</span>
           <button onClick={onEnter}>Client Portal</button>
         </div>
       </nav>
@@ -137,7 +138,8 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
             <div className="hero-proof">
               <span>Collection strategy</span>
               <span>Estate transitions</span>
-              <span>Provenance & diligence</span>
+              <span>Provenance</span>
+              <span>Institutional diligence</span>
             </div>
             <div className="hero-actions">
               <a href="#about" className="text-link">Learn more</a>
@@ -147,9 +149,13 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
           <aside className="hero-art-card" aria-label="Art advisory visual detail">
             <div className="art-photo"></div>
             <div className="art-caption">
-              <span>Advisory scope</span>
+              <span>Private advisory dossier</span>
               <strong>Collections · Estates · Artists · Institutions</strong>
-              <p>Disciplined acquisition, documentation, insurance, lending, and transition planning for collections built to endure.</p>
+              <p>Acquisition diligence, provenance review, insurance schedules, secured lending, charitable placement, and multigenerational transition planning.</p>
+              <dl>
+                <div><dt>1883</dt><dd>family stewardship begins</dd></div>
+                <div><dt>2016</dt><dd>advisory practice founded</dd></div>
+              </dl>
             </div>
           </aside>
         </div>
