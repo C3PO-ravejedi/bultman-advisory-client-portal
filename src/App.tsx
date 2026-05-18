@@ -26,7 +26,7 @@ function roleAccess(role: Role) {
 }
 
 function initialState(): PersistedPortalState {
-  if (typeof window === 'undefined') return { messages: seedMessages, documents: seedDocuments, auditEvents: seedAudit, completedActions: [] };
+  if (firebaseEnabled || typeof window === 'undefined') return { messages: seedMessages, documents: seedDocuments, auditEvents: seedAudit, completedActions: [] };
   const stored = window.localStorage.getItem(STORAGE_KEY);
   if (!stored) return { messages: seedMessages, documents: seedDocuments, auditEvents: seedAudit, completedActions: [] };
   try {
@@ -60,7 +60,7 @@ export default function App() {
   const [uploadStatus, setUploadStatus] = useState('');
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (firebaseEnabled || typeof window === 'undefined') return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ messages, documents, auditEvents, completedActions }));
   }, [messages, documents, auditEvents, completedActions]);
 
@@ -107,6 +107,7 @@ export default function App() {
   async function logout() {
     if (user) appendAudit(user.displayName, 'Signed out', 'Portal session');
     await firebaseLogout();
+    if (firebaseEnabled && typeof window !== 'undefined') window.localStorage.removeItem(STORAGE_KEY);
     setUser(null);
   }
 
@@ -121,16 +122,20 @@ export default function App() {
 
   async function handleUpload(file?: File) {
     if (!file || !user) return;
+    if (firebaseEnabled && !access.canEdit) {
+      setUploadStatus('Upload requires Owner or Advisor access.');
+      return;
+    }
     setUploadStatus(`Uploading ${file.name}…`);
     const doc: DocumentItem = { id: `doc-${Date.now()}`, clientId: 'whitfield', name: file.name, category: 'Condition Report', size: `${Math.max(1, Math.round(file.size / 1024))} KB`, updatedAt: new Date().toISOString().slice(0, 10), storagePath: `clients/whitfield/${file.name}` };
-    setDocuments((current) => [doc, ...current]);
-    appendAudit(user.displayName, 'Uploaded document', file.name);
     try {
       if (firebaseEnabled) await uploadClientDocument('whitfield', file);
+      setDocuments((current) => [doc, ...current]);
+      appendAudit(user.displayName, 'Uploaded document', file.name);
       await new Promise((resolve) => setTimeout(resolve, 450));
       setUploadStatus(`${file.name} uploaded and audit logged.`);
     } catch (error) {
-      setUploadStatus(`${file.name} captured in prototype state; Firebase upload awaits project config.`);
+      setUploadStatus(`${file.name} upload failed; no document record was saved.`);
       console.warn(error);
     }
   }
@@ -211,7 +216,7 @@ export default function App() {
 
       <section id="documents" className="panel split">
         <div><p className="eyebrow">Documents & Storage</p><h2>Secure client files</h2>{documents.map((doc) => <div className="row" key={doc.id}><FileText size={18}/><div><strong>{doc.name}</strong><span>{doc.category} · {doc.size} · {doc.updatedAt}</span></div></div>)}</div>
-        <label className="upload-box"><Upload size={28}/><strong>Upload document</strong><span>Persists instantly; routes to Firebase Storage when configured.</span><input type="file" onChange={(event) => handleUpload(event.target.files?.[0])}/>{uploadStatus && <em>{uploadStatus}</em>}</label>
+        <label className="upload-box"><Upload size={28}/><strong>Upload document</strong><span>{firebaseEnabled ? 'Owner/Advisor uploads route to Firebase Storage.' : 'Demo uploads persist in this browser.'}</span><input type="file" disabled={firebaseEnabled && !access.canEdit} onChange={(event) => handleUpload(event.target.files?.[0])}/>{uploadStatus && <em>{uploadStatus}</em>}</label>
       </section>
 
       <section id="messages" className="panel split">
