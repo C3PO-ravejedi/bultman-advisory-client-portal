@@ -1,12 +1,20 @@
-import { useMemo, useState } from 'react';
-import { Archive, Bell, FileText, Landmark, LockKeyhole, LogOut, MessageSquare, ShieldCheck, Upload, Users } from 'lucide-react';
-import { auditEvents as seedAudit, artworks, demoUsers, documents, marketUpdates, messages as seedMessages } from './demoData';
+import { useEffect, useMemo, useState } from 'react';
+import { Archive, Bell, CheckCircle2, FileText, Landmark, LockKeyhole, LogOut, MessageSquare, ShieldCheck, Upload, Users } from 'lucide-react';
+import { auditEvents as seedAudit, artworks, demoUsers, documents as seedDocuments, marketUpdates, messages as seedMessages } from './demoData';
 import { firebaseEnabled, firebaseEmailLogin, firebaseGoogleLogin, firebaseLogout, sendMessage, uploadClientDocument } from './firebase';
-import type { Message, PortalUser, Role } from './types';
+import type { AuditEvent, DocumentItem, Message, PortalUser, Role } from './types';
 import './style.css';
 
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 const roles: Role[] = ['Owner', 'Advisor', 'Associate', 'Client', 'External Collaborator'];
+const STORAGE_KEY = 'bultman-portal-prototype-state-v2';
+
+interface PersistedPortalState {
+  messages: Message[];
+  documents: DocumentItem[];
+  auditEvents: AuditEvent[];
+  completedActions: string[];
+}
 
 function roleAccess(role: Role) {
   return {
@@ -17,64 +25,129 @@ function roleAccess(role: Role) {
   };
 }
 
+function initialState(): PersistedPortalState {
+  if (typeof window === 'undefined') return { messages: seedMessages, documents: seedDocuments, auditEvents: seedAudit, completedActions: [] };
+  const stored = window.localStorage.getItem(STORAGE_KEY);
+  if (!stored) return { messages: seedMessages, documents: seedDocuments, auditEvents: seedAudit, completedActions: [] };
+  try {
+    const parsed = JSON.parse(stored) as Partial<PersistedPortalState>;
+    return {
+      messages: parsed.messages?.length ? parsed.messages : seedMessages,
+      documents: parsed.documents?.length ? parsed.documents : seedDocuments,
+      auditEvents: parsed.auditEvents?.length ? parsed.auditEvents : seedAudit,
+      completedActions: parsed.completedActions ?? [],
+    };
+  } catch {
+    return { messages: seedMessages, documents: seedDocuments, auditEvents: seedAudit, completedActions: [] };
+  }
+}
+
+function timestamp() {
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date());
+}
+
 export default function App() {
+  const persisted = useMemo(initialState, []);
   const [user, setUser] = useState<PortalUser | null>(null);
   const [loginEmail, setLoginEmail] = useState('client@example.com');
   const [password, setPassword] = useState('prototype-only');
   const [activeRole, setActiveRole] = useState<Role>('Client');
-  const [messages, setMessages] = useState<Message[]>(seedMessages);
+  const [messages, setMessages] = useState<Message[]>(persisted.messages);
+  const [documents, setDocuments] = useState<DocumentItem[]>(persisted.documents);
+  const [auditEvents, setAuditEvents] = useState<AuditEvent[]>(persisted.auditEvents);
+  const [completedActions, setCompletedActions] = useState<string[]>(persisted.completedActions);
   const [draft, setDraft] = useState('');
   const [uploadStatus, setUploadStatus] = useState('');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ messages, documents, auditEvents, completedActions }));
+  }, [messages, documents, auditEvents, completedActions]);
 
   const access = roleAccess(user?.role ?? activeRole);
   const visibleArt = artworks.filter((art) => !user?.clientId || art.clientId === user.clientId);
   const totalValue = visibleArt.reduce((sum, art) => sum + art.valuation, 0);
-
   const selectedUser = useMemo(() => demoUsers.find((item) => item.role === activeRole) ?? demoUsers[2], [activeRole]);
+  const actionItems = [
+    'Update insurance schedule before June renewal',
+    'Approve Gilliam condition photography request',
+    'Prepare Mitchell loan return inspection packet',
+  ];
+  const openActions = actionItems.filter((item) => !completedActions.includes(item));
+
+  function appendAudit(actor: string, action: string, target: string) {
+    setAuditEvents((current) => [{ id: `audit-${Date.now()}`, actor, action, target, createdAt: timestamp() }, ...current]);
+  }
 
   async function login() {
     if (firebaseEnabled && password !== 'prototype-only') {
       try {
         const credential = await firebaseEmailLogin(loginEmail, password);
-        setUser({ uid: credential.user.uid, email: credential.user.email ?? loginEmail, displayName: credential.user.displayName ?? loginEmail, role: activeRole, clientId: activeRole === 'Client' ? 'whitfield' : undefined });
+        const next = { uid: credential.user.uid, email: credential.user.email ?? loginEmail, displayName: credential.user.displayName ?? loginEmail, role: activeRole, clientId: activeRole === 'Client' ? 'whitfield' : undefined };
+        setUser(next);
+        appendAudit(next.displayName, 'Logged in', `${next.role} session`);
         return;
       } catch (error) {
         console.warn(error);
       }
     }
-    setUser({ ...selectedUser, email: loginEmail || selectedUser.email });
+    const next = { ...selectedUser, email: loginEmail || selectedUser.email };
+    setUser(next);
+    appendAudit(next.displayName, 'Logged in', `${next.role} demo session`);
   }
 
   async function googleLogin() {
     if (!firebaseEnabled) return login();
     const credential = await firebaseGoogleLogin();
-    setUser({ uid: credential.user.uid, email: credential.user.email ?? selectedUser.email, displayName: credential.user.displayName ?? selectedUser.displayName, role: activeRole, clientId: activeRole === 'Client' ? 'whitfield' : undefined });
+    const next = { uid: credential.user.uid, email: credential.user.email ?? selectedUser.email, displayName: credential.user.displayName ?? selectedUser.displayName, role: activeRole, clientId: activeRole === 'Client' ? 'whitfield' : undefined };
+    setUser(next);
+    appendAudit(next.displayName, 'Logged in with Google', `${next.role} session`);
   }
 
   async function logout() {
+    if (user) appendAudit(user.displayName, 'Signed out', 'Portal session');
     await firebaseLogout();
     setUser(null);
   }
 
   async function submitMessage() {
     if (!draft.trim() || !user) return;
-    const next = { id: `local-${Date.now()}`, clientId: 'whitfield', from: user.displayName, role: user.role, body: draft.trim(), createdAt: 'Just now' };
-    setMessages([next, ...messages]);
+    const next = { id: `msg-${Date.now()}`, clientId: 'whitfield', from: user.displayName, role: user.role, body: draft.trim(), createdAt: timestamp() };
+    setMessages((current) => [next, ...current]);
     setDraft('');
+    appendAudit(user.displayName, 'Sent message', 'Whitfield Family Collection');
     if (firebaseEnabled) await sendMessage('whitfield', user.displayName, user.role, next.body);
   }
 
   async function handleUpload(file?: File) {
-    if (!file) return;
+    if (!file || !user) return;
     setUploadStatus(`Uploading ${file.name}…`);
+    const doc: DocumentItem = { id: `doc-${Date.now()}`, clientId: 'whitfield', name: file.name, category: 'Condition Report', size: `${Math.max(1, Math.round(file.size / 1024))} KB`, updatedAt: new Date().toISOString().slice(0, 10), storagePath: `clients/whitfield/${file.name}` };
+    setDocuments((current) => [doc, ...current]);
+    appendAudit(user.displayName, 'Uploaded document', file.name);
     try {
       if (firebaseEnabled) await uploadClientDocument('whitfield', file);
       await new Promise((resolve) => setTimeout(resolve, 450));
       setUploadStatus(`${file.name} uploaded and audit logged.`);
     } catch (error) {
-      setUploadStatus(`Prototype captured ${file.name}; Firebase upload awaits project config.`);
+      setUploadStatus(`${file.name} captured in prototype state; Firebase upload awaits project config.`);
       console.warn(error);
     }
+  }
+
+  function completeAction(action: string) {
+    if (!user || completedActions.includes(action)) return;
+    setCompletedActions((current) => [...current, action]);
+    appendAudit(user.displayName, 'Completed action item', action);
+  }
+
+  function resetDemo() {
+    setMessages(seedMessages);
+    setDocuments(seedDocuments);
+    setAuditEvents(seedAudit);
+    setCompletedActions([]);
+    setUploadStatus('Demo data reset.');
+    if (typeof window !== 'undefined') window.localStorage.removeItem(STORAGE_KEY);
   }
 
   if (!user) {
@@ -83,13 +156,13 @@ export default function App() {
         <p className="eyebrow">Bultman Advisory</p>
         <h1>Art · Legacy · Stewardship</h1>
         <p className="login-copy">Institutional-caliber collection access for clients, advisors, and collaborators.</p>
-        <div className="status-pill"><ShieldCheck size={16}/> {firebaseEnabled ? 'Firebase connected' : 'Firebase-ready demo mode'}</div>
+        <div className="status-pill"><ShieldCheck size={16}/> {firebaseEnabled ? 'Firebase connected' : 'Firebase-ready persistent demo'}</div>
         <label>Role preview<select value={activeRole} onChange={(event) => setActiveRole(event.target.value as Role)}>{roles.map((role) => <option key={role}>{role}</option>)}</select></label>
         <label>Email<input value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} /></label>
         <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
         <button onClick={login}>Enter secure portal</button>
         <button className="secondary" onClick={googleLogin}>Continue with Google</button>
-        <p className="fine-print">Demo password: <strong>prototype-only</strong>. When Firebase Auth is configured, real email/password and Google sign-in take over.</p>
+        <p className="fine-print">Demo password: <strong>prototype-only</strong>. Messages, uploads, completed actions, and audit events persist in this browser until reset.</p>
       </section>
     </main>;
   }
@@ -106,20 +179,26 @@ export default function App() {
         <a href="#messages"><MessageSquare size={18}/> Messages</a>
         <a href="#audit"><ShieldCheck size={18}/> Audit</a>
       </nav>
+      <button className="ghost" onClick={resetDemo}>Reset demo data</button>
       <button className="ghost" onClick={logout}><LogOut size={16}/> Sign out</button>
     </aside>
 
     <section className="content">
       <header className="topbar">
         <div><p className="eyebrow">Welcome back</p><h1>{user.displayName}</h1><span>{user.role} access · Whitfield Family Collection</span></div>
-        <div className="top-actions"><span><Bell size={16}/> 3 action items</span><span><LockKeyhole size={16}/> 2FA required for financial fields</span></div>
+        <div className="top-actions"><span><Bell size={16}/> {openActions.length} action items</span><span><LockKeyhole size={16}/> 2FA required for financial fields</span></div>
       </header>
 
       <section id="dashboard" className="grid stats">
         <article><span>Total collection value</span><strong>{access.canFinancials ? currency.format(totalValue) : 'Restricted'}</strong><small>Across {visibleArt.length} catalogued works</small></article>
         <article><span>Documents</span><strong>{documents.length}</strong><small>Insurance, provenance, reports</small></article>
-        <article><span>Active loans</span><strong>1</strong><small>Return inspection pending</small></article>
+        <article><span>Open actions</span><strong>{openActions.length}</strong><small>{completedActions.length} completed this session</small></article>
         <article><span>Security posture</span><strong>Elevated</strong><small>RLS, audit logs, Storage rules</small></article>
+      </section>
+
+      <section className="panel">
+        <div className="section-head"><div><p className="eyebrow">Action Items</p><h2>Stewardship queue</h2></div></div>
+        {actionItems.map((action) => <div className="row" key={action}><CheckCircle2 size={18}/><div><strong className={completedActions.includes(action) ? 'done' : ''}>{action}</strong><span>{completedActions.includes(action) ? 'Completed and audit logged' : 'Awaiting advisor/client action'}</span></div>{!completedActions.includes(action) && <button className="secondary mini" onClick={() => completeAction(action)}>Mark done</button>}</div>)}
       </section>
 
       <section id="collection" className="panel">
@@ -132,7 +211,7 @@ export default function App() {
 
       <section id="documents" className="panel split">
         <div><p className="eyebrow">Documents & Storage</p><h2>Secure client files</h2>{documents.map((doc) => <div className="row" key={doc.id}><FileText size={18}/><div><strong>{doc.name}</strong><span>{doc.category} · {doc.size} · {doc.updatedAt}</span></div></div>)}</div>
-        <label className="upload-box"><Upload size={28}/><strong>Upload document</strong><span>Routes to Firebase Storage when configured.</span><input type="file" onChange={(event) => handleUpload(event.target.files?.[0])}/>{uploadStatus && <em>{uploadStatus}</em>}</label>
+        <label className="upload-box"><Upload size={28}/><strong>Upload document</strong><span>Persists instantly; routes to Firebase Storage when configured.</span><input type="file" onChange={(event) => handleUpload(event.target.files?.[0])}/>{uploadStatus && <em>{uploadStatus}</em>}</label>
       </section>
 
       <section id="messages" className="panel split">
@@ -144,7 +223,7 @@ export default function App() {
 
       <section id="audit" className="panel">
         <div className="section-head"><div><p className="eyebrow">Audit & Compliance</p><h2>Immutable activity log</h2></div>{access.canUsers && <button className="secondary"><Users size={16}/> Manage users</button>}</div>
-        {access.canAudit ? seedAudit.map((event) => <div className="row" key={event.id}><ShieldCheck size={18}/><div><strong>{event.action}</strong><span>{event.actor} · {event.target} · {event.createdAt}</span></div></div>) : <p className="restricted">Audit log is restricted to Owner and Advisor roles.</p>}
+        {access.canAudit ? auditEvents.map((event) => <div className="row" key={event.id}><ShieldCheck size={18}/><div><strong>{event.action}</strong><span>{event.actor} · {event.target} · {event.createdAt}</span></div></div>) : <p className="restricted">Audit log is restricted to Owner and Advisor roles.</p>}
       </section>
     </section>
   </main>;
