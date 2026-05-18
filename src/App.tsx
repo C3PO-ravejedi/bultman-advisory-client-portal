@@ -1,0 +1,151 @@
+import { useMemo, useState } from 'react';
+import { Archive, Bell, FileText, Landmark, LockKeyhole, LogOut, MessageSquare, ShieldCheck, Upload, Users } from 'lucide-react';
+import { auditEvents as seedAudit, artworks, demoUsers, documents, marketUpdates, messages as seedMessages } from './demoData';
+import { firebaseEnabled, firebaseEmailLogin, firebaseGoogleLogin, firebaseLogout, sendMessage, uploadClientDocument } from './firebase';
+import type { Message, PortalUser, Role } from './types';
+import './style.css';
+
+const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+const roles: Role[] = ['Owner', 'Advisor', 'Associate', 'Client', 'External Collaborator'];
+
+function roleAccess(role: Role) {
+  return {
+    canEdit: role === 'Owner' || role === 'Advisor',
+    canFinancials: role === 'Owner' || role === 'Advisor' || role === 'Client',
+    canAudit: role === 'Owner' || role === 'Advisor',
+    canUsers: role === 'Owner',
+  };
+}
+
+export default function App() {
+  const [user, setUser] = useState<PortalUser | null>(null);
+  const [loginEmail, setLoginEmail] = useState('client@example.com');
+  const [password, setPassword] = useState('prototype-only');
+  const [activeRole, setActiveRole] = useState<Role>('Client');
+  const [messages, setMessages] = useState<Message[]>(seedMessages);
+  const [draft, setDraft] = useState('');
+  const [uploadStatus, setUploadStatus] = useState('');
+
+  const access = roleAccess(user?.role ?? activeRole);
+  const visibleArt = artworks.filter((art) => !user?.clientId || art.clientId === user.clientId);
+  const totalValue = visibleArt.reduce((sum, art) => sum + art.valuation, 0);
+
+  const selectedUser = useMemo(() => demoUsers.find((item) => item.role === activeRole) ?? demoUsers[2], [activeRole]);
+
+  async function login() {
+    if (firebaseEnabled && password !== 'prototype-only') {
+      try {
+        const credential = await firebaseEmailLogin(loginEmail, password);
+        setUser({ uid: credential.user.uid, email: credential.user.email ?? loginEmail, displayName: credential.user.displayName ?? loginEmail, role: activeRole, clientId: activeRole === 'Client' ? 'whitfield' : undefined });
+        return;
+      } catch (error) {
+        console.warn(error);
+      }
+    }
+    setUser({ ...selectedUser, email: loginEmail || selectedUser.email });
+  }
+
+  async function googleLogin() {
+    if (!firebaseEnabled) return login();
+    const credential = await firebaseGoogleLogin();
+    setUser({ uid: credential.user.uid, email: credential.user.email ?? selectedUser.email, displayName: credential.user.displayName ?? selectedUser.displayName, role: activeRole, clientId: activeRole === 'Client' ? 'whitfield' : undefined });
+  }
+
+  async function logout() {
+    await firebaseLogout();
+    setUser(null);
+  }
+
+  async function submitMessage() {
+    if (!draft.trim() || !user) return;
+    const next = { id: `local-${Date.now()}`, clientId: 'whitfield', from: user.displayName, role: user.role, body: draft.trim(), createdAt: 'Just now' };
+    setMessages([next, ...messages]);
+    setDraft('');
+    if (firebaseEnabled) await sendMessage('whitfield', user.displayName, user.role, next.body);
+  }
+
+  async function handleUpload(file?: File) {
+    if (!file) return;
+    setUploadStatus(`Uploading ${file.name}…`);
+    try {
+      if (firebaseEnabled) await uploadClientDocument('whitfield', file);
+      await new Promise((resolve) => setTimeout(resolve, 450));
+      setUploadStatus(`${file.name} uploaded and audit logged.`);
+    } catch (error) {
+      setUploadStatus(`Prototype captured ${file.name}; Firebase upload awaits project config.`);
+      console.warn(error);
+    }
+  }
+
+  if (!user) {
+    return <main className="login-shell">
+      <section className="login-card">
+        <p className="eyebrow">Bultman Advisory</p>
+        <h1>Art · Legacy · Stewardship</h1>
+        <p className="login-copy">Institutional-caliber collection access for clients, advisors, and collaborators.</p>
+        <div className="status-pill"><ShieldCheck size={16}/> {firebaseEnabled ? 'Firebase connected' : 'Firebase-ready demo mode'}</div>
+        <label>Role preview<select value={activeRole} onChange={(event) => setActiveRole(event.target.value as Role)}>{roles.map((role) => <option key={role}>{role}</option>)}</select></label>
+        <label>Email<input value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} /></label>
+        <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
+        <button onClick={login}>Enter secure portal</button>
+        <button className="secondary" onClick={googleLogin}>Continue with Google</button>
+        <p className="fine-print">Demo password: <strong>prototype-only</strong>. When Firebase Auth is configured, real email/password and Google sign-in take over.</p>
+      </section>
+    </main>;
+  }
+
+  return <main className="portal-shell">
+    <aside className="sidebar">
+      <div className="brand-mark">BA</div>
+      <p className="eyebrow">Bultman Advisory</p>
+      <h2>Client Portal</h2>
+      <nav>
+        <a href="#dashboard"><Landmark size={18}/> Dashboard</a>
+        <a href="#collection"><Archive size={18}/> Collection</a>
+        <a href="#documents"><FileText size={18}/> Documents</a>
+        <a href="#messages"><MessageSquare size={18}/> Messages</a>
+        <a href="#audit"><ShieldCheck size={18}/> Audit</a>
+      </nav>
+      <button className="ghost" onClick={logout}><LogOut size={16}/> Sign out</button>
+    </aside>
+
+    <section className="content">
+      <header className="topbar">
+        <div><p className="eyebrow">Welcome back</p><h1>{user.displayName}</h1><span>{user.role} access · Whitfield Family Collection</span></div>
+        <div className="top-actions"><span><Bell size={16}/> 3 action items</span><span><LockKeyhole size={16}/> 2FA required for financial fields</span></div>
+      </header>
+
+      <section id="dashboard" className="grid stats">
+        <article><span>Total collection value</span><strong>{access.canFinancials ? currency.format(totalValue) : 'Restricted'}</strong><small>Across {visibleArt.length} catalogued works</small></article>
+        <article><span>Documents</span><strong>{documents.length}</strong><small>Insurance, provenance, reports</small></article>
+        <article><span>Active loans</span><strong>1</strong><small>Return inspection pending</small></article>
+        <article><span>Security posture</span><strong>Elevated</strong><small>RLS, audit logs, Storage rules</small></article>
+      </section>
+
+      <section id="collection" className="panel">
+        <div className="section-head"><div><p className="eyebrow">Collection Inventory</p><h2>Works requiring stewardship</h2></div>{access.canEdit && <button>+ Add artwork</button>}</div>
+        <div className="art-grid">{visibleArt.map((art) => <article className="art-card" key={art.id}>
+          <img src={art.imageUrl} alt={`${art.artist} ${art.title}`} />
+          <div><span>{art.status}</span><h3>{art.artist}</h3><p><em>{art.title}</em>, {art.year}</p><p>{art.medium} · {art.dimensions}</p><strong>{access.canFinancials ? currency.format(art.valuation) : 'Valuation restricted'}</strong><small>{art.nextAction}</small></div>
+        </article>)}</div>
+      </section>
+
+      <section id="documents" className="panel split">
+        <div><p className="eyebrow">Documents & Storage</p><h2>Secure client files</h2>{documents.map((doc) => <div className="row" key={doc.id}><FileText size={18}/><div><strong>{doc.name}</strong><span>{doc.category} · {doc.size} · {doc.updatedAt}</span></div></div>)}</div>
+        <label className="upload-box"><Upload size={28}/><strong>Upload document</strong><span>Routes to Firebase Storage when configured.</span><input type="file" onChange={(event) => handleUpload(event.target.files?.[0])}/>{uploadStatus && <em>{uploadStatus}</em>}</label>
+      </section>
+
+      <section id="messages" className="panel split">
+        <div><p className="eyebrow">Advisor Messaging</p><h2>Threaded communications</h2>{messages.map((message) => <div className="message" key={message.id}><strong>{message.from} <span>{message.role}</span></strong><p>{message.body}</p><small>{message.createdAt}</small></div>)}</div>
+        <div className="composer"><textarea value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Write a secure message…"/><button onClick={submitMessage}>Send message</button></div>
+      </section>
+
+      <section className="panel"><p className="eyebrow">Market Updates</p><h2>Advisor intelligence feed</h2><div className="updates">{marketUpdates.map((update) => <article key={update.id}><span>{update.tag}</span><h3>{update.title}</h3><p>{update.summary}</p><small>{update.publishedAt}</small></article>)}</div></section>
+
+      <section id="audit" className="panel">
+        <div className="section-head"><div><p className="eyebrow">Audit & Compliance</p><h2>Immutable activity log</h2></div>{access.canUsers && <button className="secondary"><Users size={16}/> Manage users</button>}</div>
+        {access.canAudit ? seedAudit.map((event) => <div className="row" key={event.id}><ShieldCheck size={18}/><div><strong>{event.action}</strong><span>{event.actor} · {event.target} · {event.createdAt}</span></div></div>) : <p className="restricted">Audit log is restricted to Owner and Advisor roles.</p>}
+      </section>
+    </section>
+  </main>;
+}

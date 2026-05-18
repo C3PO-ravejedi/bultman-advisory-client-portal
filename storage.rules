@@ -1,0 +1,14 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null; }
+    function role() { return request.auth.token.role; }
+    function clientId() { return request.auth.token.clientId; }
+    function ownerOrAdvisor() { return signedIn() && (role() in ['Owner', 'Advisor']); }
+
+    match /clients/{client}/{allPaths=**} {
+      allow read: if ownerOrAdvisor() || (signedIn() && clientId() == client);
+      allow write: if ownerOrAdvisor();
+    }
+  }
+}
