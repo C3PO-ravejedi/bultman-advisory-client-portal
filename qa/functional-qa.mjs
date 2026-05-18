@@ -16,7 +16,14 @@ const browser = await chromium.launch({ headless: true, executablePath });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 const events = [];
 page.on('console', (msg) => {
-  if (msg.type() === 'error' || msg.type() === 'warning') events.push(`console:${msg.type()}:${msg.text()}`);
+  const text = msg.text();
+  if (text.includes('Failed to load resource')) return;
+  if (msg.type() === 'error' || msg.type() === 'warning') events.push(`console:${msg.type()}:${text}`);
+});
+page.on('response', (response) => {
+  const status = response.status();
+  const responseUrl = response.url();
+  if (status >= 400 && !responseUrl.endsWith('/favicon.ico')) events.push(`response:${status}:${responseUrl}`);
 });
 page.on('pageerror', (err) => events.push(`pageerror:${err.message}`));
 
