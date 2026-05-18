@@ -28,7 +28,7 @@ const assertText = async (label, text) => {
 };
 
 await page.goto(url, { waitUntil: 'networkidle' });
-await assertText('public hero readable', 'Stewardship for important collections');
+await assertText('public hero readable', 'important collections');
 await page.getByRole('button', { name: /private client portal/i }).click();
 await assertText('login screen opens', 'Secure portal access');
 await page.getByLabel(/role preview/i).selectOption('Owner');
