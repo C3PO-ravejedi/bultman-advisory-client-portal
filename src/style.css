@@ -520,3 +520,51 @@
   .art-dossier-copy h2{font-size:1.05rem!important;line-height:1.16!important;margin:.35rem 0 0!important}
   .art-dossier-copy p{font-size:.88rem!important;line-height:1.45!important;margin:.42rem 0 0!important}
 }
+
+/* Mobile first-fold acceptance: one CTA, no crowded nav, no dense card copy */
+@media(max-width:1050px){
+  .site-nav{
+    justify-content:flex-start!important;
+  }
+  .site-nav div{
+    display:none!important;
+  }
+  .wordmark strong{
+    font-size:1.42rem!important;
+  }
+  .hero-copy-block .hero-actions{
+    display:block!important;
+    margin-top:1.25rem!important;
+  }
+  .hero-actions .text-link{
+    display:none!important;
+  }
+  .hero-actions button{
+    width:100%!important;
+    min-height:50px!important;
+    background:#101f2d!important;
+    color:#fffdf8!important;
+    font-size:.95rem!important;
+    border:0!important;
+  }
+  .art-dossier{
+    margin-top:1.35rem!important;
+    grid-template-rows:160px auto!important;
+  }
+  .art-dossier-image{min-height:160px!important}
+  .art-dossier-copy{
+    padding:1rem!important;
+  }
+  .art-dossier-copy span{
+    font-size:.8rem!important;
+    color:#d7bd83!important;
+  }
+  .art-dossier-copy h2{
+    font-size:1.22rem!important;
+    line-height:1.22!important;
+    margin:.45rem 0 0!important;
+  }
+  .art-dossier-copy p{
+    display:none!important;
+  }
+}
