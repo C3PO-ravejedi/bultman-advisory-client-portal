@@ -1,0 +1,53 @@
+name: Visual QA
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Live URL to screenshot
+        required: false
+        default: https://c3po-ravejedi.github.io/bultman-advisory-client-portal/
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'qa/**'
+      - '.github/workflows/visual-qa.yml'
+
+jobs:
+  screenshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: GITHUB_PAGES=true pnpm run build
+      - run: npx --yes playwright install --with-deps chromium
+      - name: Capture live screenshots
+        env:
+          QA_URL: ${{ github.event.inputs.url || 'https://c3po-ravejedi.github.io/bultman-advisory-client-portal/' }}
+        run: |
+          mkdir -p qa/screenshots
+          npx --yes playwright screenshot --browser=chromium --viewport-size=1440,1800 "$QA_URL?visualQa=${GITHUB_RUN_ID}-desktop" qa/screenshots/desktop-1440.png
+          npx --yes playwright screenshot --browser=chromium --device='iPhone 15' "$QA_URL?visualQa=${GITHUB_RUN_ID}-mobile" qa/screenshots/mobile-390.png
+          cat > qa/screenshots/README.md <<EOF2
+          # Live Visual QA Screenshots
+
+          URL: $QA_URL
+          Captured: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+          Files:
+          - desktop-1440.png
+          - mobile-390.png
+          EOF2
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bultman-live-screenshots
+          path: qa/screenshots
