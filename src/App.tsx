@@ -127,16 +127,31 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
       </nav>
 
       <section id="top" className="hero-site">
-        <div className="hero-frame">
-          <p className="eyebrow">Bultman Advisory</p>
-          <h1>Art · Legacy · Stewardship</h1>
-          <p className="hero-lede">
-            Institutional-caliber advisory for collectors, artists, families, and institutions — grounded in five generations of stewardship.
-          </p>
-          <div className="hero-actions">
-            <a href="#about" className="text-link">Learn more</a>
-            <button onClick={onEnter}>Enter client portal <ArrowRight size={17}/></button>
+        <div className="hero-inner">
+          <div className="hero-frame">
+            <p className="eyebrow">Private art advisory · New York</p>
+            <h1>Art · Legacy · Stewardship</h1>
+            <p className="hero-lede">
+              Institutional-caliber counsel for serious collectors, artists, family offices, estates, and cultural institutions — grounded in five generations of art-world stewardship.
+            </p>
+            <div className="hero-proof">
+              <span>Collection strategy</span>
+              <span>Estate transitions</span>
+              <span>Provenance & diligence</span>
+            </div>
+            <div className="hero-actions">
+              <a href="#about" className="text-link">Learn more</a>
+              <button onClick={onEnter}>Private client access <ArrowRight size={17}/></button>
+            </div>
           </div>
+          <aside className="hero-art-card" aria-label="Art advisory visual detail">
+            <div className="art-photo"></div>
+            <div className="art-caption">
+              <span>Advisory scope</span>
+              <strong>Collections · Estates · Artists · Institutions</strong>
+              <p>Disciplined acquisition, documentation, insurance, lending, and transition planning for collections built to endure.</p>
+            </div>
+          </aside>
         </div>
       </section>
 
@@ -222,6 +237,11 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
           <p>
             The client portal prototype translates the firm’s advisory discipline into a secure operating layer: role-based access, collection inventory, documents, messaging, action items, market notes, and audit history.
           </p>
+          <div className="portal-trust">
+            <span><LockKeyhole size={15}/> Private client access</span>
+            <span><ShieldCheck size={15}/> Role-based permissions</span>
+            <span><FileText size={15}/> Documents + audit trail</span>
+          </div>
           <button onClick={onEnter}>Open the working portal</button>
         </div>
         <div className="portal-preview">
