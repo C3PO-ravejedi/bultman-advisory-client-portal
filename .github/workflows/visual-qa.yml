@@ -36,7 +36,7 @@ jobs:
         run: |
           mkdir -p qa/screenshots
           npx --yes playwright screenshot --browser=chromium --viewport-size=1440,1800 "$QA_URL?visualQa=${GITHUB_RUN_ID}-desktop" qa/screenshots/desktop-1440.png
-          npx --yes playwright screenshot --browser=chromium --device='iPhone 15' "$QA_URL?visualQa=${GITHUB_RUN_ID}-mobile" qa/screenshots/mobile-390.png
+          npx --yes playwright screenshot --browser=chromium --viewport-size=390,844 "$QA_URL?visualQa=${GITHUB_RUN_ID}-mobile" qa/screenshots/mobile-390.png
           cat > qa/screenshots/README.md <<EOF2
           # Live Visual QA Screenshots
 
