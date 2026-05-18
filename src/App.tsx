@@ -122,6 +122,7 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
           <a href="#services">Services</a>
           <a href="#team">Team</a>
           <a href="#platform">Portal</a>
+          <a href="#services" className="mobile-menu-link">Menu</a>
           <button onClick={onEnter}>Client Portal</button>
         </div>
       </nav>
@@ -140,7 +141,7 @@ function PublicSite({ onEnter }: { onEnter: () => void }) {
             </div>
           </div>
           <aside className="art-dossier" aria-label="Private advisory dossier">
-            <div className="art-dossier-image"></div>
+            <div className="art-dossier-image"><span>Provenance / Valuation / Stewardship</span></div>
             <div className="art-dossier-copy">
               <span>Advisory dossier</span>
               <h2>Collection strategy, provenance review, estate transition, and market execution.</h2>
