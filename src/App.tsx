@@ -29,7 +29,7 @@ import {
   sendMessage,
   uploadClientDocument,
 } from './firebase';
-import type { AuditEvent, DocumentItem, Message, PortalUser, Role } from './types';
+import type { Artwork, AuditEvent, DocumentItem, Message, PortalUser, Role } from './types';
 import './style.css';
 
 const currency = new Intl.NumberFormat('en-US', {
@@ -348,8 +348,11 @@ export default function App() {
   const [documents, setDocuments] = useState<DocumentItem[]>(persisted.documents);
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>(persisted.auditEvents);
   const [completedActions, setCompletedActions] = useState<string[]>(persisted.completedActions);
+  const [collectionItems, setCollectionItems] = useState<Artwork[]>(artworks);
   const [draft, setDraft] = useState('');
   const [uploadStatus, setUploadStatus] = useState('');
+  const [portalNotice, setPortalNotice] = useState('');
+  const [activeWorkspace, setActiveWorkspace] = useState<'none' | 'artwork' | 'users'>('none');
 
   useEffect(() => {
     if (!firebaseEnabled && typeof window !== 'undefined') {
@@ -358,7 +361,7 @@ export default function App() {
   }, [messages, documents, auditEvents, completedActions]);
 
   const access = roleAccess(user?.role ?? 'Client');
-  const visibleArt = artworks.filter((art) => !user?.clientId || art.clientId === user.clientId);
+  const visibleArt = collectionItems.filter((art) => !user?.clientId || art.clientId === user.clientId);
   const totalValue = visibleArt.reduce((sum, art) => sum + art.valuation, 0);
   const actionItems = [
     'Update insurance schedule before June renewal',
@@ -433,8 +436,41 @@ export default function App() {
     setDocuments(seedDocuments);
     setAuditEvents(seedAudit);
     setCompletedActions([]);
-    setUploadStatus('Demo data reset.');
+    setCollectionItems(artworks);
+    setUploadStatus('');
+    setPortalNotice('Demo data reset.');
+    setActiveWorkspace('none');
     if (typeof window !== 'undefined') window.localStorage.removeItem(STORAGE_KEY);
+  }
+
+  function addPrototypeArtwork() {
+    if (!user || !access.canEdit) return;
+    const next: Artwork = {
+      id: `art-${Date.now()}`,
+      clientId: 'whitfield',
+      artist: 'Alma Thomas',
+      title: 'Color Field Study',
+      year: '1972',
+      medium: 'Acrylic on paper',
+      dimensions: '24 × 30 in',
+      location: 'Advisor review queue',
+      status: 'Under Review',
+      valuation: 310000,
+      imageUrl: 'https://images.unsplash.com/photo-1545987796-200677ee1011?auto=format&fit=crop&w=1400&q=80',
+      provenance: 'Prototype intake record pending advisor diligence.',
+      nextAction: 'Create provenance checklist and condition photography request.',
+    };
+    setCollectionItems((current) => [next, ...current]);
+    setPortalNotice('Prototype artwork intake added to the collection queue.');
+    setActiveWorkspace('artwork');
+    appendAudit(user.displayName, 'Added artwork intake', next.title);
+  }
+
+  function openUserManagement() {
+    if (!user || !access.canUsers) return;
+    setActiveWorkspace('users');
+    setPortalNotice('User management workspace opened.');
+    appendAudit(user.displayName, 'Opened user management', 'Portal access roster');
   }
 
   if (mode === 'site') return <PublicSite onEnter={() => setMode('login')} />;
@@ -462,6 +498,7 @@ export default function App() {
           <div><p className="eyebrow">Welcome back</p><h1>{user.displayName}</h1><span>{user.role} access · Whitfield Family Collection</span></div>
           <div className="top-actions"><span><Bell size={16}/> {openActions.length} action items</span><span><LockKeyhole size={16}/> 2FA required for financial fields</span></div>
         </header>
+        {portalNotice && <div className="portal-notice" role="status"><CheckCircle2 size={18}/>{portalNotice}</div>}
 
         <section id="dashboard" className="grid stats">
           <article><span>Total collection value</span><strong>{access.canFinancials ? currency.format(totalValue) : 'Restricted'}</strong><small>Across {visibleArt.length} catalogued works</small></article>
@@ -482,7 +519,7 @@ export default function App() {
         </section>
 
         <section id="collection" className="panel">
-          <div className="section-head"><div><p className="eyebrow">Collection Inventory</p><h2>Works requiring stewardship</h2></div>{access.canEdit && <button>+ Add artwork</button>}</div>
+          <div className="section-head"><div><p className="eyebrow">Collection Inventory</p><h2>Works requiring stewardship</h2></div>{access.canEdit && <button onClick={addPrototypeArtwork}>+ Add artwork</button>}</div>
           <div className="art-grid">
             {visibleArt.map((art) => (
               <article className="art-card" key={art.id}>
@@ -492,6 +529,23 @@ export default function App() {
             ))}
           </div>
         </section>
+
+
+        {activeWorkspace === 'artwork' && access.canEdit && (
+          <section className="panel workspace-panel" aria-label="Artwork intake workspace">
+            <div className="section-head"><div><p className="eyebrow">Artwork Intake</p><h2>New work added to review queue</h2></div><button className="secondary mini" onClick={() => setActiveWorkspace('none')}>Close</button></div>
+            <p>The prototype intake created an under-review artwork record, logged the action, and moved it to the top of the collection inventory.</p>
+            <div className="row"><Archive size={18}/><div><strong>Next step</strong><span>Create provenance checklist and assign condition photography.</span></div></div>
+          </section>
+        )}
+
+        {activeWorkspace === 'users' && access.canUsers && (
+          <section className="panel workspace-panel" aria-label="User management workspace">
+            <div className="section-head"><div><p className="eyebrow">User Management</p><h2>Portal access roster</h2></div><button className="secondary mini" onClick={() => setActiveWorkspace('none')}>Close</button></div>
+            {demoUsers.map((member) => <div className="row" key={member.uid}><Users size={18}/><div><strong>{member.displayName}</strong><span>{member.role} · {member.email}</span></div></div>)}
+            <div className="row"><ShieldCheck size={18}/><div><strong>Permission model</strong><span>Owner controls user access; Advisor manages collection records; Client sees approved financials and documents.</span></div></div>
+          </section>
+        )}
 
         <section id="documents" className="panel split">
           <div><p className="eyebrow">Documents & Storage</p><h2>Secure client files</h2>{documents.map((doc) => <div className="row" key={doc.id}><FileText size={18}/><div><strong>{doc.name}</strong><span>{doc.category} · {doc.size} · {doc.updatedAt}</span></div></div>)}</div>
@@ -506,7 +560,7 @@ export default function App() {
         <section className="panel"><p className="eyebrow">Market Updates</p><h2>Advisor intelligence feed</h2><div className="updates">{marketUpdates.map((update) => <article key={update.id}><span>{update.tag}</span><h3>{update.title}</h3><p>{update.summary}</p><small>{update.publishedAt}</small></article>)}</div></section>
 
         <section id="audit" className="panel">
-          <div className="section-head"><div><p className="eyebrow">Audit & Compliance</p><h2>Immutable activity log</h2></div>{access.canUsers && <button className="secondary"><Users size={16}/> Manage users</button>}</div>
+          <div className="section-head"><div><p className="eyebrow">Audit & Compliance</p><h2>Immutable activity log</h2></div>{access.canUsers && <button className="secondary" onClick={openUserManagement}><Users size={16}/> Manage users</button>}</div>
           {access.canAudit ? auditEvents.map((event) => <div className="row" key={event.id}><ShieldCheck size={18}/><div><strong>{event.action}</strong><span>{event.actor} · {event.target} · {event.createdAt}</span></div></div>) : <p className="restricted">Audit log is restricted to Owner and Advisor roles.</p>}
         </section>
       </section>

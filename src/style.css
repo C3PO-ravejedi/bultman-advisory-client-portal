@@ -720,3 +720,24 @@
   .art-dossier-copy{display:none!important}
   .intro-section{padding-top:4rem!important}
 }
+
+.portal-notice{
+  display:flex;
+  align-items:center;
+  gap:.65rem;
+  margin:0 0 1rem;
+  padding:.85rem 1rem;
+  border:1px solid rgba(121,131,111,.3);
+  background:#f5f8ee;
+  color:#253320;
+  font-weight:700;
+}
+.workspace-panel{
+  border-color:rgba(185,154,95,.55)!important;
+  background:linear-gradient(135deg,#fffdf8,#f7f0e4)!important;
+}
+.workspace-panel>p{
+  max-width:760px;
+  color:var(--muted);
+  line-height:1.7;
+}

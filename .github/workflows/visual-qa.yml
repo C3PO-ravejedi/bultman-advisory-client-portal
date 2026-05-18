@@ -17,6 +17,7 @@ on:
 jobs:
   screenshot:
     env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     runs-on: ubuntu-latest
     steps:
@@ -31,6 +32,18 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
       - run: GITHUB_PAGES=true pnpm run build
+      - name: Run Playwright functional QA
+        run: |
+          npm install --no-save playwright@latest
+          npx playwright install --with-deps chromium
+          npx vite preview --host 127.0.0.1 --port 4173 > /tmp/bultman-preview.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/bultman-advisory-client-portal/ >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          node qa/functional-qa.mjs http://127.0.0.1:4173/bultman-advisory-client-portal/ qa/screenshots/functional-qa.json
       - run: npx --yes playwright install --with-deps chromium
       - name: Capture live screenshots
         env:

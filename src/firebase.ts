@@ -15,17 +15,10 @@ const firebaseConfig = {
 
 export const firebaseEnabled = Boolean(firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId);
 
-let app: FirebaseApp | null = null;
-export let auth: Auth | null = null;
-export let db: Firestore | null = null;
-export let storage: FirebaseStorage | null = null;
-
-if (firebaseEnabled) {
-  app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  db = getFirestore(app);
-  storage = getStorage(app);
-}
+const app: FirebaseApp | null = firebaseEnabled ? initializeApp(firebaseConfig) : null;
+export const auth: Auth | null = app ? getAuth(app) : null;
+export const db: Firestore | null = app ? getFirestore(app) : null;
+export const storage: FirebaseStorage | null = app ? getStorage(app) : null;
 
 export async function firebaseEmailLogin(email: string, password: string) {
   if (!auth) throw new Error('Firebase is not configured.');
