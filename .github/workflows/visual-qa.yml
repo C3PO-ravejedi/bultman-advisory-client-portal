@@ -16,6 +16,8 @@ on:
 
 jobs:
   screenshot:
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,6 +49,15 @@ jobs:
           - desktop-1440.png
           - mobile-390.png
           EOF2
+      - name: LLM visual evaluation of screenshot artifacts
+        if: ${{ env.OPENAI_API_KEY != '' }}
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          VISUAL_QA_MODEL: gpt-4.1
+        run: node qa/llm-evaluate-screenshots.mjs qa/screenshots/desktop-1440.png qa/screenshots/mobile-390.png qa/screenshots/llm-visual-eval.md
+      - name: Record missing LLM visual evaluation gate
+        if: ${{ env.OPENAI_API_KEY == '' }}
+        run: node qa/llm-evaluate-screenshots.mjs qa/screenshots/desktop-1440.png qa/screenshots/mobile-390.png qa/screenshots/llm-visual-eval.md
       - uses: actions/upload-artifact@v4
         with:
           name: bultman-live-screenshots
