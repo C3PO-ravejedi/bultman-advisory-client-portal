@@ -34,8 +34,8 @@ jobs:
       - run: GITHUB_PAGES=true pnpm run build
       - name: Run Playwright functional QA
         run: |
-          PLAYWRIGHT_REQUIRE_PATH=$(pnpm dlx --package=playwright@latest node -e "console.log(require.resolve('playwright'))")
-          pnpm dlx playwright@latest install --with-deps chromium
+          PLAYWRIGHT_REQUIRE_PATH=$(npx --yes -p playwright@latest -c "node -e \"console.log(require.resolve('playwright'))\"")
+          npx --yes playwright@latest install --with-deps chromium
           npx vite preview --host 127.0.0.1 --port 4173 > /tmp/bultman-preview.log 2>&1 &
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:4173/bultman-advisory-client-portal/ >/dev/null; then
@@ -44,7 +44,7 @@ jobs:
             sleep 1
           done
           PLAYWRIGHT_REQUIRE_PATH="$PLAYWRIGHT_REQUIRE_PATH" node qa/functional-qa.mjs http://127.0.0.1:4173/bultman-advisory-client-portal/ qa/screenshots/functional-qa.json
-      - run: pnpm dlx playwright@latest install --with-deps chromium
+      - run: npx --yes playwright@latest install --with-deps chromium
       - name: Capture live screenshots
         env:
           QA_URL: ${{ github.event.inputs.url || 'https://c3po-ravejedi.github.io/bultman-advisory-client-portal/' }}
