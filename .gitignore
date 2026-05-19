@@ -9,3 +9,5 @@ firebase-debug.log
 coverage
 
 tsconfig.tsbuildinfo
+
+qa/screenshots/

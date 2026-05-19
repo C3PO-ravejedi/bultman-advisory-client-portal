@@ -53,13 +53,15 @@ describe('Bultman portal prototype data model', () => {
     expect(demoUsers.map((user) => user.role)).toEqual(['Owner', 'Advisor', 'Client']);
   });
 
-  it('has collection inventory and secure document examples', () => {
-    expect(artworks.length).toBeGreaterThanOrEqual(3);
+  it('has roadmap-depth collection inventory and secure document examples', () => {
+    expect(artworks.length).toBeGreaterThanOrEqual(8);
+    expect(documents.length).toBeGreaterThanOrEqual(7);
     expect(documents.some((doc) => doc.storagePath.startsWith('clients/'))).toBe(true);
+    expect(new Set(artworks.map((art) => art.status)).size).toBeGreaterThanOrEqual(4);
   });
 
   it('keeps valuation data numeric for reporting', () => {
-    expect(artworks.reduce((sum, art) => sum + art.valuation, 0)).toBeGreaterThan(1_000_000);
+    expect(artworks.reduce((sum, art) => sum + art.valuation, 0)).toBeGreaterThan(6_000_000);
   });
 
   it('starts on the public advisory site, not the private portal', async () => {

@@ -253,6 +253,10 @@ img { max-width: 100%; }
 .login-error { color: var(--danger); font-weight: 700; margin: 0; }
 .fine-print { color: var(--muted); font-size: .82rem; line-height: 1.6; }
 .status-pill, .top-actions span { display: inline-flex; align-items: center; gap: .45rem; border: 1px solid var(--line); background: #fffaf1; color: var(--ink); padding: .48rem .7rem; border-radius: 999px; font-size: .82rem; font-weight: 800; }
+.login-card .eyebrow,
+.demo-access-box legend { color: #5d431c; }
+.demo-access-box { gap: .85rem; padding: 1.15rem; }
+.demo-access-box .fine-print { color: #5f584e; font-size: .86rem; }
 
 /* Portal */
 .portal-shell { min-height: 100vh; display: grid; grid-template-columns: 280px minmax(0, 1fr); background: var(--cream); }
@@ -433,4 +437,14 @@ img { max-width: 100%; }
   .wordmark strong { font-size: .94rem; white-space: nowrap; }
   .site-nav button { min-width: 62px; padding: .42rem .5rem; font-size: 0; }
   .site-nav button::after { content: 'Portal'; font-size: .58rem; letter-spacing: .08em; text-transform: uppercase; }
+}
+
+/* Rich demo data mobile polish */
+@media (max-width: 640px) {
+  .approval-card .mini, .row .mini { margin-left: 0; width: max-content; }
+  .row { align-items: flex-start; flex-wrap: wrap; }
+  .row > div { min-width: 0; flex: 1 1 220px; }
+  .approval-card { display: grid; gap: .65rem; }
+  .approval-card small { display: block; color: var(--muted); }
+  .panel h2 { font-size: clamp(2rem, 11vw, 2.7rem); overflow-wrap: anywhere; }
 }
