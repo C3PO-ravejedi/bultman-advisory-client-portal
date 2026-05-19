@@ -45,6 +45,7 @@ interface PersistedPortalState {
   documents: DocumentItem[];
   auditEvents: AuditEvent[];
   completedActions: string[];
+  approvedRequests: string[];
 }
 
 function roleAccess(role: Role) {
@@ -62,6 +63,7 @@ function initialState(): PersistedPortalState {
     documents: seedDocuments,
     auditEvents: seedAudit,
     completedActions: [],
+    approvedRequests: [],
   };
   if (firebaseEnabled || typeof window === 'undefined') return fallback;
   try {
@@ -71,6 +73,7 @@ function initialState(): PersistedPortalState {
       documents: parsed.documents?.length ? parsed.documents : seedDocuments,
       auditEvents: parsed.auditEvents?.length ? parsed.auditEvents : seedAudit,
       completedActions: parsed.completedActions ?? [],
+      approvedRequests: parsed.approvedRequests ?? [],
     };
   } catch {
     return fallback;
@@ -392,6 +395,7 @@ export default function App() {
   const [documents, setDocuments] = useState<DocumentItem[]>(persisted.documents);
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>(persisted.auditEvents);
   const [completedActions, setCompletedActions] = useState<string[]>(persisted.completedActions);
+  const [approvedRequests, setApprovedRequests] = useState<string[]>(persisted.approvedRequests);
   const [collectionItems, setCollectionItems] = useState<Artwork[]>(artworks);
   const [draft, setDraft] = useState('');
   const [uploadStatus, setUploadStatus] = useState('');
@@ -401,9 +405,9 @@ export default function App() {
 
   useEffect(() => {
     if (!firebaseEnabled && typeof window !== 'undefined') {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ messages, documents, auditEvents, completedActions }));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ messages, documents, auditEvents, completedActions, approvedRequests }));
     }
-  }, [messages, documents, auditEvents, completedActions]);
+  }, [messages, documents, auditEvents, completedActions, approvedRequests]);
 
   const access = roleAccess(user?.role ?? 'Client');
   const visibleArt = collectionItems.filter((art) => !user?.clientId || art.clientId === user.clientId);
@@ -420,7 +424,13 @@ export default function App() {
     'Approve Gilliam condition photography request',
     'Prepare Mitchell loan return inspection packet',
   ];
+  const approvalRequests = [
+    { id: 'approval-insurance', title: 'Release refreshed insurance schedule', requester: 'Leigh Mozes', due: 'May 24', scope: 'Share updated valuation packet with carrier and family office.' },
+    { id: 'approval-conservation', title: 'Authorize condition photography', requester: 'Tristan Bultman', due: 'May 27', scope: 'Approve storage facility photography for the Gilliam stretcher concern.' },
+    { id: 'approval-governance', title: 'Prepare family governance packet', requester: 'Leigh Mozes', due: 'May 30', scope: 'Include Mitchell works on paper, loan return notes, and estate transition memo.' },
+  ];
   const openActions = actionItems.filter((item) => !completedActions.includes(item));
+  const pendingApprovals = approvalRequests.filter((item) => !approvedRequests.includes(item.id));
 
   function appendAudit(actor: string, action: string, target: string) {
     setAuditEvents((current) => [{ id: `audit-${Date.now()}`, actor, action, target, createdAt: timestamp() }, ...current]);
@@ -488,6 +498,7 @@ export default function App() {
     setDocuments(seedDocuments);
     setAuditEvents(seedAudit);
     setCompletedActions([]);
+    setApprovedRequests([]);
     setCollectionItems(artworks);
     setUploadStatus('');
     setPortalNotice('Demo data reset.');
@@ -528,6 +539,14 @@ export default function App() {
     appendAudit(user.displayName, 'Opened artwork dossier', artwork.title);
   }
 
+  function approveRequest(requestId: string) {
+    if (!user || approvedRequests.includes(requestId) || !access.canFinancials) return;
+    const request = approvalRequests.find((item) => item.id === requestId);
+    setApprovedRequests((current) => [...current, requestId]);
+    setPortalNotice(`${request?.title ?? 'Approval request'} approved and audit logged.`);
+    appendAudit(user.displayName, 'Approved stewardship request', request?.title ?? requestId);
+  }
+
   function openUserManagement() {
     if (!user || !access.canUsers) return;
     setActiveWorkspace('users');
@@ -547,6 +566,7 @@ export default function App() {
         <nav>
           <a href="#dashboard"><Landmark size={18}/> Dashboard</a>
           <a href="#collection"><Archive size={18}/> Collection</a>
+          <a href="#approvals"><CheckCircle2 size={18}/> Approvals</a>
           <a href="#documents"><FileText size={18}/> Documents</a>
           <a href="#messages"><MessageSquare size={18}/> Messages</a>
           <a href="#audit"><ShieldCheck size={18}/> Audit</a>
@@ -566,7 +586,7 @@ export default function App() {
           <article><span>Total collection value</span><strong>{access.canFinancials ? currency.format(totalValue) : 'Restricted'}</strong><small>Across {visibleArt.length} catalogued works</small></article>
           <article><span>Documents</span><strong>{documents.length}</strong><small>Insurance, provenance, reports</small></article>
           <article><span>Open actions</span><strong>{openActions.length}</strong><small>{completedActions.length} completed this session</small></article>
-          <article><span>Security posture</span><strong>Elevated</strong><small>RLS, audit logs, Storage rules</small></article>
+          <article><span>Pending approvals</span><strong>{pendingApprovals.length}</strong><small>{approvedRequests.length} approved this session</small></article>
         </section>
 
         <section className="panel">
@@ -638,6 +658,22 @@ export default function App() {
             <div className="row"><ShieldCheck size={18}/><div><strong>Permission model</strong><span>Owner controls user access; Advisor manages collection records; Client sees approved financials and documents.</span></div></div>
           </section>
         )}
+
+        <section id="approvals" className="panel approval-panel">
+          <div className="section-head"><div><p className="eyebrow">Client Approvals</p><h2>Decision queue</h2></div><span className="status-pill">{pendingApprovals.length} pending</span></div>
+          <div className="approval-grid">
+            {approvalRequests.map((request) => {
+              const approved = approvedRequests.includes(request.id);
+              return <article className={approved ? 'approval-card approved' : 'approval-card'} key={request.id}>
+                <span>{approved ? 'Approved' : `Due ${request.due}`}</span>
+                <h3>{request.title}</h3>
+                <p>{request.scope}</p>
+                <small>Requested by {request.requester}</small>
+                <button className="secondary mini" disabled={approved || !access.canFinancials} onClick={() => approveRequest(request.id)}>{approved ? 'Approved' : 'Approve'}</button>
+              </article>;
+            })}
+          </div>
+        </section>
 
         <section id="documents" className="panel split">
           <div><p className="eyebrow">Documents & Storage</p><h2>Secure client files</h2>{documents.map((doc) => <div className="row" key={doc.id}><FileText size={18}/><div><strong>{doc.name}</strong><span>{doc.category} · {doc.size} · {doc.updatedAt}</span></div></div>)}</div>

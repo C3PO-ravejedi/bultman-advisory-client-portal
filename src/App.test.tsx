@@ -61,6 +61,10 @@ describe('Bultman portal prototype data model', () => {
     await click(/mark done/i);
     expect(document.body.textContent).toContain('Completed and audit logged');
 
+    expect(document.body.textContent).toContain('Decision queue');
+    await click(/^approve$/i);
+    expect(document.body.textContent).toContain('approved and audit logged');
+
     await click(/open dossier/i);
     expect(document.body.textContent).toContain('Artwork Dossier');
     expect(document.body.textContent).toContain('Risk queue');
