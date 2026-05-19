@@ -289,37 +289,58 @@ function PortalLogin({ onLogin }: { onLogin: (user: PortalUser) => void }) {
   const [loginEmail, setLoginEmail] = useState('client@example.com');
   const [password, setPassword] = useState('prototype-only');
   const [activeRole, setActiveRole] = useState<Role>('Client');
+  const [loginError, setLoginError] = useState('');
+  const [loginBusy, setLoginBusy] = useState(false);
   const selectedUser = useMemo(() => demoUsers.find((item) => item.role === activeRole) ?? demoUsers[2], [activeRole]);
 
   async function login() {
+    const email = loginEmail.trim();
+    if (!email || !password) {
+      setLoginError('Enter an email and password to continue.');
+      setLoginBusy(false);
+      return;
+    }
+    setLoginError('');
+    setLoginBusy(true);
     if (firebaseEnabled && password !== 'prototype-only') {
       try {
-        const credential = await firebaseEmailLogin(loginEmail, password);
+        const credential = await firebaseEmailLogin(email, password);
         onLogin({
           uid: credential.user.uid,
-          email: credential.user.email ?? loginEmail,
-          displayName: credential.user.displayName ?? loginEmail,
+          email: credential.user.email ?? email,
+          displayName: credential.user.displayName ?? email,
           role: activeRole,
           clientId: activeRole === 'Client' ? 'whitfield' : undefined,
         });
         return;
       } catch (error) {
         console.warn(error);
+        setLoginError('We could not verify those credentials. Please check the email and password, or use prototype access for the demo workspace.');
+        setLoginBusy(false);
+        return;
       }
     }
-    onLogin({ ...selectedUser, email: loginEmail || selectedUser.email });
+    onLogin({ ...selectedUser, email: email || selectedUser.email });
   }
 
   async function googleLogin() {
+    setLoginError('');
+    setLoginBusy(true);
     if (!firebaseEnabled) return login();
-    const credential = await firebaseGoogleLogin();
-    onLogin({
-      uid: credential.user.uid,
-      email: credential.user.email ?? selectedUser.email,
-      displayName: credential.user.displayName ?? selectedUser.displayName,
-      role: activeRole,
-      clientId: activeRole === 'Client' ? 'whitfield' : undefined,
-    });
+    try {
+      const credential = await firebaseGoogleLogin();
+      onLogin({
+        uid: credential.user.uid,
+        email: credential.user.email ?? selectedUser.email,
+        displayName: credential.user.displayName ?? selectedUser.displayName,
+        role: activeRole,
+        clientId: activeRole === 'Client' ? 'whitfield' : undefined,
+      });
+    } catch (error) {
+      console.warn(error);
+      setLoginError('Google sign-in was not completed. Please try again or enter your client credentials.');
+      setLoginBusy(false);
+    }
   }
 
   return (
@@ -341,15 +362,21 @@ function PortalLogin({ onLogin }: { onLogin: (user: PortalUser) => void }) {
           <h2>Enter the client workspace</h2>
           <p className="login-copy login-card-copy">For clients, advisors, and approved collaborators.</p>
 
-          <label>Email<input type="email" autoComplete="email" value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} /></label>
-          <label>Password<input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
-          <button onClick={login}>Enter secure portal</button>
-          <button className="secondary" onClick={googleLogin}>Continue with Google</button>
+          <form className="login-form" onSubmit={(event) => { event.preventDefault(); void login(); }}>
+            <label htmlFor="client-email">Email</label>
+            <input id="client-email" type="email" autoComplete="email" value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} required aria-describedby="login-helper" />
+            <label htmlFor="client-password">Password</label>
+            <input id="client-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+            {loginError ? <p className="login-error" role="alert">{loginError}</p> : null}
+            <button type="submit" disabled={loginBusy}>{loginBusy ? 'Opening workspace…' : 'Enter secure portal'}</button>
+          </form>
+          <button className="secondary" onClick={googleLogin} disabled={loginBusy}>Continue with Google</button>
 
           <div className="demo-access-box">
             <div className="status-pill"><ShieldCheck size={16}/> {firebaseEnabled ? 'Firebase auth available' : 'Demo workspace active'}</div>
-            <label>Demo access level<select value={activeRole} onChange={(event) => setActiveRole(event.target.value as Role)}>{roles.map((role) => <option key={role}>{role}</option>)}</select></label>
-            <p className="fine-print">Prototype access uses <strong>prototype-only</strong>. {firebaseEnabled ? 'Real Firebase sessions remain available when configured.' : 'Demo messages, uploads, completed actions, and audit events persist in this browser until reset.'}</p>
+            <label htmlFor="demo-access-level">Demo access level</label>
+            <select id="demo-access-level" value={activeRole} onChange={(event) => setActiveRole(event.target.value as Role)}>{roles.map((role) => <option key={role}>{role}</option>)}</select>
+            <p id="login-helper" className="fine-print">Prototype access uses <strong>prototype-only</strong>. {firebaseEnabled ? 'Real Firebase sessions remain available when configured.' : 'Demo messages, uploads, completed actions, and audit events persist in this browser until reset.'}</p>
           </div>
         </section>
       </section>
@@ -369,7 +396,8 @@ export default function App() {
   const [draft, setDraft] = useState('');
   const [uploadStatus, setUploadStatus] = useState('');
   const [portalNotice, setPortalNotice] = useState('');
-  const [activeWorkspace, setActiveWorkspace] = useState<'none' | 'artwork' | 'users'>('none');
+  const [activeWorkspace, setActiveWorkspace] = useState<'none' | 'artwork' | 'users' | 'dossier'>('none');
+  const [selectedArtworkId, setSelectedArtworkId] = useState(artworks[0]?.id ?? '');
 
   useEffect(() => {
     if (!firebaseEnabled && typeof window !== 'undefined') {
@@ -380,6 +408,13 @@ export default function App() {
   const access = roleAccess(user?.role ?? 'Client');
   const visibleArt = collectionItems.filter((art) => !user?.clientId || art.clientId === user.clientId);
   const totalValue = visibleArt.reduce((sum, art) => sum + art.valuation, 0);
+  const selectedArtwork = visibleArt.find((art) => art.id === selectedArtworkId) ?? visibleArt[0];
+  const selectedArtworkDocuments = selectedArtwork ? documents.filter((doc) => doc.artworkId === selectedArtwork.id) : [];
+  const stewardshipRisks = [
+    ['Insurance renewal', 'High', 'Refresh valuation packet before June renewal.'],
+    ['Condition photography', 'Medium', 'Storage images pending advisor review.'],
+    ['Family governance', 'Medium', 'Prepare Mitchell packet for next week.'],
+  ];
   const actionItems = [
     'Update insurance schedule before June renewal',
     'Approve Gilliam condition photography request',
@@ -457,6 +492,7 @@ export default function App() {
     setUploadStatus('');
     setPortalNotice('Demo data reset.');
     setActiveWorkspace('none');
+    setSelectedArtworkId(artworks[0]?.id ?? '');
     if (typeof window !== 'undefined') window.localStorage.removeItem(STORAGE_KEY);
   }
 
@@ -479,8 +515,17 @@ export default function App() {
     };
     setCollectionItems((current) => [next, ...current]);
     setPortalNotice('Prototype artwork intake added to the collection queue.');
+    setSelectedArtworkId(next.id);
     setActiveWorkspace('artwork');
     appendAudit(user.displayName, 'Added artwork intake', next.title);
+  }
+
+  function openArtworkDossier(artwork: Artwork) {
+    if (!user) return;
+    setSelectedArtworkId(artwork.id);
+    setActiveWorkspace('dossier');
+    setPortalNotice(`${artwork.artist} dossier opened.`);
+    appendAudit(user.displayName, 'Opened artwork dossier', artwork.title);
   }
 
   function openUserManagement() {
@@ -541,7 +586,7 @@ export default function App() {
             {visibleArt.map((art) => (
               <article className="art-card" key={art.id}>
                 <img src={art.imageUrl} alt={`${art.artist} ${art.title}`} />
-                <div><span>{art.status}</span><h3>{art.artist}</h3><p><em>{art.title}</em>, {art.year}</p><p>{art.medium} · {art.dimensions}</p><strong>{access.canFinancials ? currency.format(art.valuation) : 'Valuation restricted'}</strong><small>{art.nextAction}</small></div>
+                <div><span>{art.status}</span><h3>{art.artist}</h3><p><em>{art.title}</em>, {art.year}</p><p>{art.medium} · {art.dimensions}</p><strong>{access.canFinancials ? currency.format(art.valuation) : 'Valuation restricted'}</strong><small>{art.nextAction}</small><button className="secondary mini card-action" onClick={() => openArtworkDossier(art)}>Open dossier</button></div>
               </article>
             ))}
           </div>
@@ -553,6 +598,36 @@ export default function App() {
             <div className="section-head"><div><p className="eyebrow">Artwork Intake</p><h2>New work added to review queue</h2></div><button className="secondary mini" onClick={() => setActiveWorkspace('none')}>Close</button></div>
             <p>The prototype intake created an under-review artwork record, logged the action, and moved it to the top of the collection inventory.</p>
             <div className="row"><Archive size={18}/><div><strong>Next step</strong><span>Create provenance checklist and assign condition photography.</span></div></div>
+          </section>
+        )}
+
+        {activeWorkspace === 'dossier' && selectedArtwork && (
+          <section className="panel workspace-panel dossier-panel" aria-label="Artwork stewardship dossier">
+            <div className="section-head"><div><p className="eyebrow">Artwork Dossier</p><h2>{selectedArtwork.artist}</h2></div><button className="secondary mini" onClick={() => setActiveWorkspace('none')}>Close</button></div>
+            <div className="dossier-grid">
+              <img src={selectedArtwork.imageUrl} alt={`${selectedArtwork.artist} ${selectedArtwork.title}`} />
+              <div className="dossier-details">
+                <span className="status-pill">{selectedArtwork.status}</span>
+                <h3><em>{selectedArtwork.title}</em>, {selectedArtwork.year}</h3>
+                <dl>
+                  <div><dt>Medium</dt><dd>{selectedArtwork.medium}</dd></div>
+                  <div><dt>Dimensions</dt><dd>{selectedArtwork.dimensions}</dd></div>
+                  <div><dt>Location</dt><dd>{selectedArtwork.location}</dd></div>
+                  <div><dt>Valuation</dt><dd>{access.canFinancials ? currency.format(selectedArtwork.valuation) : 'Restricted'}</dd></div>
+                </dl>
+                <p>{selectedArtwork.provenance}</p>
+              </div>
+            </div>
+            <div className="dossier-columns">
+              <div>
+                <h3>Related documents</h3>
+                {selectedArtworkDocuments.length ? selectedArtworkDocuments.map((doc) => <div className="row compact-row" key={doc.id}><FileText size={18}/><div><strong>{doc.name}</strong><span>{doc.category} · {doc.updatedAt}</span></div></div>) : <p className="fine-print">No attached documents yet.</p>}
+              </div>
+              <div>
+                <h3>Risk queue</h3>
+                {stewardshipRisks.map(([name, level, copy]) => <div className="row compact-row" key={name}><ShieldCheck size={18}/><div><strong>{name} · {level}</strong><span>{copy}</span></div></div>)}
+              </div>
+            </div>
           </section>
         )}
 
