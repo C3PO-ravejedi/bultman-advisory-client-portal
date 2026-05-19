@@ -75,6 +75,7 @@ jobs:
         env:
           DISPATCH_TOKEN: ${{ steps.dispatch_token.outputs.token }}
           TARGET_TOKEN: ${{ steps.target_token.outputs.token }}
+          LOCAL_TOKEN: ${{ github.token }}
           TARGET_REPO: ${{ github.repository }}
           ITEM_NUMBER: ${{ github.event.issue.number }}
           COMMENT_ID: ${{ github.event.comment.id }}
@@ -90,6 +91,9 @@ jobs:
           fi
           if [ -z "$DISPATCH_TOKEN" ]; then
             echo "::notice::Skipping ClawSweeper command dispatch because CLAWSWEEPER_APP_PRIVATE_KEY is not configured."
+            if [ -n "$LOCAL_TOKEN" ]; then
+              GH_TOKEN="$LOCAL_TOKEN" gh issue comment "$ITEM_NUMBER" --repo "$TARGET_REPO" --body "ClawSweeper dispatch is installed, but it is missing the required repository secret \`CLAWSWEEPER_APP_PRIVATE_KEY\`. Add the ClawSweeper GitHub App private key secret, then rerun the command." >/dev/null || true
+            fi
             exit 0
           fi
           if [ -n "$TARGET_TOKEN" ]; then
