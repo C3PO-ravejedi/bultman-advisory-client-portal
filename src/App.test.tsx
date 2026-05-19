@@ -43,7 +43,12 @@ describe('Bultman portal prototype data model', () => {
     await act(async () => createRoot(host).render(<App />));
 
     await click(/private client portal/i);
-    expect(document.body.textContent).toContain('Secure portal access');
+    expect(document.body.textContent).toContain('Private Client Portal');
+    expect(document.body.textContent).toContain('Bultman Advisory');
+    expect(document.body.textContent).toContain('Secure access to collection records');
+    expect(document.body.textContent).toContain('Demo access level');
+    expect((document.querySelector('input[type="email"]') as HTMLInputElement | null)?.value).toBe('client@example.com');
+    expect(document.querySelector('input[type="password"]')).toBeTruthy();
 
     const roleSelect = document.querySelector('select') as HTMLSelectElement;
     await act(async () => {

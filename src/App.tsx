@@ -323,18 +323,35 @@ function PortalLogin({ onLogin }: { onLogin: (user: PortalUser) => void }) {
   }
 
   return (
-    <main className="login-shell">
-      <section className="login-card">
-        <p className="eyebrow">Bultman Advisory</p>
-        <h1>Art · Legacy · Stewardship</h1>
-        <p className="login-copy">Secure portal access for clients, advisors, and collaborators.</p>
-        <div className="status-pill"><ShieldCheck size={16}/> {firebaseEnabled ? 'Firebase connected' : 'Working prototype mode'}</div>
-        <label>Role preview<select value={activeRole} onChange={(event) => setActiveRole(event.target.value as Role)}>{roles.map((role) => <option key={role}>{role}</option>)}</select></label>
-        <label>Email<input value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} /></label>
-        <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
-        <button onClick={login}>Enter secure portal</button>
-        <button className="secondary" onClick={googleLogin}>Continue with Google</button>
-        <p className="fine-print">Demo password: <strong>prototype-only</strong>. {firebaseEnabled ? 'Firebase-connected demo sessions are in-memory unless real Auth/Firestore credentials are used.' : 'Messages, uploads, completed actions, and audit events persist in this browser until reset.'}</p>
+    <main className="login-shell login-shell-private">
+      <section className="login-panel" aria-label="Bultman Advisory private client portal">
+        <aside className="login-editorial-card">
+          <p className="eyebrow">Private Client Portal</p>
+          <h1>Bultman Advisory</h1>
+          <p className="login-copy">Secure access to collection records, documents, messages, and advisory updates.</p>
+          <div className="login-trust-list" aria-label="Portal safeguards">
+            <span><LockKeyhole size={16}/> Role-based access</span>
+            <span><FileText size={16}/> Document audit trail</span>
+            <span><ShieldCheck size={16}/> Private collection workspace</span>
+          </div>
+        </aside>
+
+        <section className="login-card login-access-card">
+          <p className="eyebrow">Secure Access</p>
+          <h2>Enter the client workspace</h2>
+          <p className="login-copy login-card-copy">For clients, advisors, and approved collaborators.</p>
+
+          <label>Email<input type="email" autoComplete="email" value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} /></label>
+          <label>Password<input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
+          <button onClick={login}>Enter secure portal</button>
+          <button className="secondary" onClick={googleLogin}>Continue with Google</button>
+
+          <div className="demo-access-box">
+            <div className="status-pill"><ShieldCheck size={16}/> {firebaseEnabled ? 'Firebase auth available' : 'Demo workspace active'}</div>
+            <label>Demo access level<select value={activeRole} onChange={(event) => setActiveRole(event.target.value as Role)}>{roles.map((role) => <option key={role}>{role}</option>)}</select></label>
+            <p className="fine-print">Prototype access uses <strong>prototype-only</strong>. {firebaseEnabled ? 'Real Firebase sessions remain available when configured.' : 'Demo messages, uploads, completed actions, and audit events persist in this browser until reset.'}</p>
+          </div>
+        </section>
       </section>
     </main>
   );
