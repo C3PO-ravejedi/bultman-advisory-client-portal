@@ -17,10 +17,34 @@ function button(name: RegExp) {
   return match as HTMLButtonElement;
 }
 
+async function renderApp() {
+  const host = document.createElement('div');
+  document.body.appendChild(host);
+  await act(async () => createRoot(host).render(<App />));
+}
+
 async function click(name: RegExp) {
   await act(async () => {
     button(name).dispatchEvent(new MouseEvent('click', { bubbles: true }));
   });
+}
+
+function emailInput() {
+  const input = document.querySelector('input[type="email"]') as HTMLInputElement | null;
+  if (!input) throw new Error('Missing email input');
+  return input;
+}
+
+function passwordInput() {
+  const input = document.querySelector('input[type="password"]') as HTMLInputElement | null;
+  if (!input) throw new Error('Missing password input');
+  return input;
+}
+
+function demoAccessSelect() {
+  const select = document.querySelector('#demo-access-level') as HTMLSelectElement | null;
+  if (!select) throw new Error('Missing demo access level select');
+  return select;
 }
 
 describe('Bultman portal prototype data model', () => {
@@ -37,18 +61,64 @@ describe('Bultman portal prototype data model', () => {
     expect(artworks.reduce((sum, art) => sum + art.valuation, 0)).toBeGreaterThan(1_000_000);
   });
 
+  it('starts on the public advisory site, not the private portal', async () => {
+    await renderApp();
+
+    expect(document.body.textContent).toContain('Stewardship for');
+    expect(document.body.textContent).toContain('Private art advisory');
+    expect(document.querySelector('input[type="email"]')).toBeNull();
+    expect(document.body.textContent).not.toContain('Welcome back');
+  });
+
+  it('opens the login screen with safe client demo defaults', async () => {
+    await renderApp();
+
+    await click(/client portal/i);
+
+    expect(document.body.textContent).toContain('Private Client Portal');
+    expect(emailInput().value).toBe('client@example.com');
+    expect(passwordInput().value).toBe('prototype-only');
+    expect(demoAccessSelect().value).toBe('Client');
+    expect(document.body.textContent).toContain('Demo workspace active');
+    expect(document.body.textContent).toContain('Prototype access uses prototype-only');
+    expect(document.body.textContent).not.toContain('Welcome back');
+  });
+
+  it('enters the portal as the selected demo access level', async () => {
+    await renderApp();
+    await click(/client portal/i);
+
+    const roleSelect = demoAccessSelect();
+    await act(async () => {
+      roleSelect.value = 'Advisor';
+      roleSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await click(/enter secure portal/i);
+
+    expect(document.body.textContent).toContain('Welcome back');
+    expect(document.body.textContent).toContain('Leigh Mozes');
+    expect(document.body.textContent).toContain('Advisor access · Whitfield Family Collection');
+    expect(document.body.textContent).toContain('Audit & Compliance');
+    expect(document.body.textContent).not.toContain('Portal access roster');
+  });
+
   it('makes key portal buttons perform visible actions', async () => {
-    const host = document.createElement('div');
-    document.body.appendChild(host);
-    await act(async () => createRoot(host).render(<App />));
+    await renderApp();
 
     await click(/private client portal/i);
     expect(document.body.textContent).toContain('Private Client Portal');
     expect(document.body.textContent).toContain('Bultman Advisory');
     expect(document.body.textContent).toContain('Secure access to collection records');
+    expect(document.body.textContent).toContain('Demo controls');
     expect(document.body.textContent).toContain('Demo access level');
-    expect((document.querySelector('input[type="email"]') as HTMLInputElement | null)?.value).toBe('client@example.com');
-    expect(document.querySelector('input[type="password"]')).toBeTruthy();
+    const emailInput = document.querySelector('#client-email') as HTMLInputElement | null;
+    const passwordInput = document.querySelector('#client-password') as HTMLInputElement | null;
+    expect(emailInput?.type).toBe('email');
+    expect(emailInput?.value).toBe('client@example.com');
+    expect(passwordInput?.type).toBe('password');
+    expect(document.querySelector('label[for="client-email"]')?.textContent).toBe('Email');
+    expect(document.querySelector('label[for="client-password"]')?.textContent).toBe('Password');
+    expect(document.querySelector('fieldset.demo-access-box select#demo-access-level')).toBeTruthy();
 
     const roleSelect = document.querySelector('select') as HTMLSelectElement;
     await act(async () => {

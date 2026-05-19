@@ -360,12 +360,12 @@ function PortalLogin({ onLogin }: { onLogin: (user: PortalUser) => void }) {
           </div>
         </aside>
 
-        <section className="login-card login-access-card">
+        <section className="login-card login-access-card" aria-labelledby="login-heading" aria-describedby="login-intro">
           <p className="eyebrow">Secure Access</p>
-          <h2>Enter the client workspace</h2>
-          <p className="login-copy login-card-copy">For clients, advisors, and approved collaborators.</p>
+          <h2 id="login-heading">Enter the client workspace</h2>
+          <p id="login-intro" className="login-copy login-card-copy">For clients, advisors, and approved collaborators.</p>
 
-          <form className="login-form" onSubmit={(event) => { event.preventDefault(); void login(); }}>
+          <form className="login-form" aria-busy={loginBusy} onSubmit={(event) => { event.preventDefault(); void login(); }}>
             <label htmlFor="client-email">Email</label>
             <input id="client-email" type="email" autoComplete="email" value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} required aria-describedby="login-helper" />
             <label htmlFor="client-password">Password</label>
@@ -375,12 +375,13 @@ function PortalLogin({ onLogin }: { onLogin: (user: PortalUser) => void }) {
           </form>
           <button className="secondary" onClick={googleLogin} disabled={loginBusy}>Continue with Google</button>
 
-          <div className="demo-access-box">
+          <fieldset className="demo-access-box" aria-describedby="login-helper">
+            <legend>Demo controls</legend>
             <div className="status-pill"><ShieldCheck size={16}/> {firebaseEnabled ? 'Firebase auth available' : 'Demo workspace active'}</div>
             <label htmlFor="demo-access-level">Demo access level</label>
             <select id="demo-access-level" value={activeRole} onChange={(event) => setActiveRole(event.target.value as Role)}>{roles.map((role) => <option key={role}>{role}</option>)}</select>
             <p id="login-helper" className="fine-print">Prototype access uses <strong>prototype-only</strong>. {firebaseEnabled ? 'Real Firebase sessions remain available when configured.' : 'Demo messages, uploads, completed actions, and audit events persist in this browser until reset.'}</p>
-          </div>
+          </fieldset>
         </section>
       </section>
     </main>
