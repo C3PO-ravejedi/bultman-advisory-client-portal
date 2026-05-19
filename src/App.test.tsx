@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { beforeEach, describe, expect, it } from 'vitest';
 import App from './App';
 import { demoUsers, artworks, documents } from './demoData';
+import { MAX_CLIENT_DOCUMENT_BYTES, sanitizeStorageFileName, validateClientDocumentFile } from './firebase';
 
 beforeEach(() => {
   (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -148,5 +149,13 @@ describe('Bultman portal prototype data model', () => {
     await click(/manage users/i);
     expect(document.body.textContent).toContain('Portal access roster');
     expect(document.body.textContent).toContain('Leigh Mozes');
+  });
+
+  it('sanitizes and validates client document uploads before Firebase Storage', () => {
+    expect(sanitizeStorageFileName('../Estate Packet May 2026.pdf')).toBe('Estate-Packet-May-2026.pdf');
+    expect(validateClientDocumentFile(new File(['ok'], 'condition.pdf', { type: 'application/pdf' }))).toBe('');
+    expect(validateClientDocumentFile(new File(['bad'], 'script.html', { type: 'text/html' }))).toContain('Upload a PDF');
+    const largeFile = new File([new Uint8Array(MAX_CLIENT_DOCUMENT_BYTES + 1)], 'large.pdf', { type: 'application/pdf' });
+    expect(validateClientDocumentFile(largeFile)).toContain('25 MB');
   });
 });

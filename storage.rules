@@ -5,10 +5,22 @@ service firebase.storage {
     function role() { return request.auth.token.role; }
     function clientId() { return request.auth.token.clientId; }
     function ownerOrAdvisor() { return signedIn() && (role() in ['Owner', 'Advisor']); }
+    function validClientDocument() {
+      return request.resource.size <= 25 * 1024 * 1024
+        && request.resource.contentType in [
+          'application/pdf',
+          'image/jpeg',
+          'image/png',
+          'image/webp',
+          'text/plain',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+    }
 
     match /clients/{client}/{allPaths=**} {
       allow read: if ownerOrAdvisor() || (signedIn() && clientId() == client);
-      allow write: if ownerOrAdvisor();
+      allow write: if ownerOrAdvisor() && validClientDocument();
     }
   }
 }

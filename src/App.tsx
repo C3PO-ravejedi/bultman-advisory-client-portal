@@ -26,8 +26,10 @@ import {
   firebaseEmailLogin,
   firebaseGoogleLogin,
   firebaseLogout,
+  sanitizeStorageFileName,
   sendMessage,
   uploadClientDocument,
+  validateClientDocumentFile,
 } from './firebase';
 import type { Artwork, AuditEvent, DocumentItem, Message, PortalUser, Role } from './types';
 import './style.css';
@@ -466,24 +468,30 @@ export default function App() {
       setUploadStatus('Upload requires Owner or Advisor access.');
       return;
     }
-    setUploadStatus(`Uploading ${file.name}…`);
+    const validationError = validateClientDocumentFile(file);
+    if (validationError) {
+      setUploadStatus(validationError);
+      return;
+    }
+    const safeName = sanitizeStorageFileName(file.name);
+    setUploadStatus(`Uploading ${safeName}…`);
     const doc: DocumentItem = {
       id: `doc-${Date.now()}`,
       clientId: 'whitfield',
-      name: file.name,
+      name: safeName,
       category: 'Condition Report',
       size: `${Math.max(1, Math.round(file.size / 1024))} KB`,
       updatedAt: new Date().toISOString().slice(0, 10),
-      storagePath: `clients/whitfield/${file.name}`,
+      storagePath: `clients/whitfield/${safeName}`,
     };
     try {
-      if (firebaseEnabled) await uploadClientDocument('whitfield', file);
+      if (firebaseEnabled) await uploadClientDocument('whitfield', file, user.displayName);
       setDocuments((current) => [doc, ...current]);
-      appendAudit(user.displayName, 'Uploaded document', file.name);
+      appendAudit(user.displayName, 'Uploaded document', safeName);
       await new Promise((resolve) => setTimeout(resolve, 450));
-      setUploadStatus(`${file.name} uploaded and audit logged.`);
+      setUploadStatus(`${safeName} uploaded and audit logged.`);
     } catch (error) {
-      setUploadStatus(`${file.name} upload failed; no document record was saved.`);
+      setUploadStatus(`${safeName} upload failed; no document record was saved.`);
       console.warn(error);
     }
   }

@@ -1,8 +1,19 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, signOut, type Auth } from 'firebase/auth';
-import { addDoc, collection, getDocs, getFirestore, limit, orderBy, query, serverTimestamp, type Firestore } from 'firebase/firestore';
+import { addDoc, collection, getDocs, getFirestore, limit, orderBy, query, serverTimestamp, where, type Firestore } from 'firebase/firestore';
 import { getDownloadURL, getStorage, ref, uploadBytes, type FirebaseStorage } from 'firebase/storage';
 import type { AuditEvent, Message } from './types';
+
+export const MAX_CLIENT_DOCUMENT_BYTES = 25 * 1024 * 1024;
+export const ALLOWED_CLIENT_DOCUMENT_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'text/plain',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -19,6 +30,24 @@ const app: FirebaseApp | null = firebaseEnabled ? initializeApp(firebaseConfig) 
 export const auth: Auth | null = app ? getAuth(app) : null;
 export const db: Firestore | null = app ? getFirestore(app) : null;
 export const storage: FirebaseStorage | null = app ? getStorage(app) : null;
+
+export function sanitizeStorageFileName(name: string) {
+  const cleaned = name
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/\.{2,}/g, '.')
+    .replace(/^\.+/, '')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 120);
+  return cleaned || 'client-document';
+}
+
+export function validateClientDocumentFile(file: File) {
+  if (file.size > MAX_CLIENT_DOCUMENT_BYTES) return 'Document must be 25 MB or smaller.';
+  if (!ALLOWED_CLIENT_DOCUMENT_TYPES.includes(file.type)) return 'Upload a PDF, image, text, Word, or DOCX file.';
+  return '';
+}
 
 export async function firebaseEmailLogin(email: string, password: string) {
   if (!auth) throw new Error('Firebase is not configured.');
@@ -37,11 +66,9 @@ export async function firebaseLogout() {
 
 export async function fetchMessages(clientId: string): Promise<Message[]> {
   if (!db) return [];
-  const q = query(collection(db, 'messages'), orderBy('createdAt', 'desc'), limit(25));
+  const q = query(collection(db, 'messages'), where('clientId', '==', clientId), orderBy('createdAt', 'desc'), limit(25));
   const snap = await getDocs(q);
-  return snap.docs
-    .map((doc) => ({ id: doc.id, ...doc.data() }) as Message)
-    .filter((message) => message.clientId === clientId);
+  return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Message);
 }
 
 export async function sendMessage(clientId: string, from: string, role: string, body: string) {
@@ -62,15 +89,18 @@ export async function fetchAuditEvents(): Promise<AuditEvent[]> {
   return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as AuditEvent);
 }
 
-export async function uploadClientDocument(clientId: string, file: File) {
+export async function uploadClientDocument(clientId: string, file: File, actor = 'Current user') {
   if (!storage) throw new Error('Firebase Storage is not configured.');
-  const path = `clients/${clientId}/${Date.now()}-${file.name}`;
-  const result = await uploadBytes(ref(storage, path), file, { customMetadata: { clientId } });
+  const validationError = validateClientDocumentFile(file);
+  if (validationError) throw new Error(validationError);
+  const safeName = sanitizeStorageFileName(file.name);
+  const path = `clients/${clientId}/${Date.now()}-${safeName}`;
+  const result = await uploadBytes(ref(storage, path), file, { contentType: file.type, customMetadata: { clientId } });
   const url = await getDownloadURL(result.ref);
   if (db) {
     await addDoc(collection(db, 'documents'), {
       clientId,
-      name: file.name,
+      name: safeName,
       category: 'Document',
       storagePath: path,
       size: `${Math.round(file.size / 1024)} KB`,
@@ -78,6 +108,6 @@ export async function uploadClientDocument(clientId: string, file: File) {
       downloadUrl: url,
     });
   }
-  await writeAudit('Current user', 'Uploaded document', file.name);
+  await writeAudit(actor, 'Uploaded document', safeName);
   return { path, url };
 }
