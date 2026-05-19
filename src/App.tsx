@@ -367,9 +367,9 @@ function PortalLogin({ onLogin }: { onLogin: (user: PortalUser) => void }) {
 
           <form className="login-form" aria-busy={loginBusy} onSubmit={(event) => { event.preventDefault(); void login(); }}>
             <label htmlFor="client-email">Email</label>
-            <input id="client-email" type="email" autoComplete="email" value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} required aria-describedby="login-helper" />
+            <input id="client-email" type="email" autoComplete="email" value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} required aria-describedby="login-intro" />
             <label htmlFor="client-password">Password</label>
-            <input id="client-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+            <input id="client-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required aria-describedby="login-helper" />
             {loginError ? <p className="login-error" role="alert">{loginError}</p> : null}
             <button type="submit" disabled={loginBusy}>{loginBusy ? 'Opening workspace…' : 'Enter secure portal'}</button>
           </form>
